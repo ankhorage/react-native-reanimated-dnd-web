@@ -52,7 +52,8 @@
     "build:assert-artifacts": "node ./scripts/assert-artifacts.mjs",
     "release:validate-meta": "node ./scripts/verify-version-sync.mjs",
     "lint": "eslint src --max-warnings=0",
-    "test": "bun test src --pass-with-no-tests",
+    "test": "bun test src",
+    "consumer:matrix": "bash ./scripts/run-consumer-matrix.sh",
     "pack:smoke": "rm -rf .artifacts .npm-cache && mkdir -p .artifacts .npm-cache && NPM_CONFIG_CACHE=.npm-cache npm pack --pack-destination .artifacts . && node ./scripts/verify-pack.mjs .artifacts",
     "release:check": "bun run release:validate-meta && bun run build && bun run test && bun run pack:smoke"
   },

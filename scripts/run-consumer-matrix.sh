@@ -3,9 +3,10 @@ set -euo pipefail
 
 TARGET="${1:-}"
 TARBALL_PATH="${2:-}"
+PACKAGE_NAME="@ankhorage/react-native-reanimated-dnd-web"
 
 if [[ -z "${TARGET}" || -z "${TARBALL_PATH}" ]]; then
-  echo "Usage: ./packages/react-native-reanimated-dnd-web/scripts/run-consumer-matrix.sh <expo-web|expo-native|vite|next> <path-to-tgz>"
+  echo "Usage: ./scripts/run-consumer-matrix.sh <expo-web|expo-native|vite|next> <path-to-tgz>"
   exit 1
 fi
 
@@ -40,7 +41,7 @@ run_vite_consumer() {
     "build": "vite build"
   },
   "dependencies": {
-    "@ankh/dnd": "file:${TARBALL_ABS}",
+    "${PACKAGE_NAME}": "file:${TARBALL_ABS}",
     "react": "19.1.0",
     "react-dom": "19.1.0",
     "react-native": "0.81.5",
@@ -84,7 +85,7 @@ EOF
 import React from 'react';
 import { createRoot } from 'react-dom/client';
 import { Text, View } from 'react-native';
-import { clamp, DropProvider, Sortable, SortableItem } from '@ankh/dnd';
+import { clamp, DropProvider, Sortable, SortableItem } from '@ankhorage/react-native-reanimated-dnd-web';
 
 const data = [{ id: 'a', label: 'Alpha' }];
 
@@ -137,7 +138,7 @@ run_next_consumer() {
     "build": "next build --webpack"
   },
   "dependencies": {
-    "@ankh/dnd": "file:${TARBALL_ABS}",
+    "${PACKAGE_NAME}": "file:${TARBALL_ABS}",
     "next": "16.0.0",
     "react": "19.1.0",
     "react-dom": "19.1.0",
@@ -149,7 +150,7 @@ EOF
 
   cat > "${APP_DIR}/next.config.mjs" <<'EOF'
 const nextConfig = {
-  transpilePackages: ['@ankh/dnd'],
+  transpilePackages: ['@ankhorage/react-native-reanimated-dnd-web'],
   webpack: (config) => {
     config.resolve.alias = {
       ...config.resolve.alias,
@@ -175,7 +176,7 @@ EOF
   cat > "${APP_DIR}/app/page.jsx" <<'EOF'
 'use client';
 
-import { clamp, DropProvider, Sortable, SortableItem } from '@ankh/dnd';
+import { clamp, DropProvider, Sortable, SortableItem } from '@ankhorage/react-native-reanimated-dnd-web';
 import { Text, View } from 'react-native';
 
 const data = [{ id: 'a', label: 'Alpha' }];
@@ -227,7 +228,7 @@ write_expo_files() {
     "export:android": "expo export --platform android --non-interactive"
   },
   "dependencies": {
-    "@ankh/dnd": "file:${TARBALL_ABS}",
+    "${PACKAGE_NAME}": "file:${TARBALL_ABS}",
     "expo": "~54.0.33",
     "react": "19.1.0",
     "react-dom": "19.1.0",
@@ -265,7 +266,7 @@ EOF
   cat > "${APP_DIR}/App.js" <<'EOF'
 import React from 'react';
 import { Text, View } from 'react-native';
-import { clamp, DropProvider, Sortable, SortableItem } from '@ankh/dnd';
+import { clamp, DropProvider, Sortable, SortableItem } from '@ankhorage/react-native-reanimated-dnd-web';
 
 const data = [{ id: 'a', label: 'Alpha' }];
 

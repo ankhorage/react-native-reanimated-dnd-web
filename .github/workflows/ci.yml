@@ -1,0 +1,75 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  package-check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Release checks
+        run: bun run release:check
+
+  consumer-matrix:
+    name: consumer-${{ matrix.target }}
+    needs: package-check
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        target:
+          - vite
+          - next
+          - expo-web
+          - expo-native
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Build package
+        run: bun run build
+
+      - name: Pack tarball
+        id: pack
+        run: |
+          mkdir -p .artifacts .npm-cache
+          NPM_CONFIG_CACHE=.npm-cache npm pack --pack-destination .artifacts .
+          echo "tarball=$(ls .artifacts/*.tgz | head -n 1)" >> "$GITHUB_OUTPUT"
+
+      - name: Run consumer matrix target
+        run: NPM_CONFIG_CACHE=.npm-cache bash ./scripts/run-consumer-matrix.sh "${{ matrix.target }}" "${{ steps.pack.outputs.tarball }}"
