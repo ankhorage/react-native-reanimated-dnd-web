@@ -5,9 +5,9 @@
 Platform adapter for `react-native-reanimated-dnd`:
 
 - native: passthrough re-export of upstream package
-- web: sortable-list support + explicit stubs for unsupported symbols
+- web: passthrough export surface with sortable reliability overrides
 
-This is an integration-focused adapter with scoped compatibility, not full upstream parity yet.
+The package keeps `@ankhorage/react-native-reanimated-dnd-web` as a stable import path while preserving upstream API shape and adding deterministic sortable behavior on web.
 
 ## Install
 
@@ -30,41 +30,49 @@ The package resolves to:
 
 ## Compatibility Scope
 
-| Export | Web status | Notes |
-| --- | --- | --- |
-| `DropProvider` | Supported | No-op provider wrapper. |
-| `Sortable` | Supported | Sortable list container. |
-| `SortableItem` | Supported | Includes `SortableItem.Handle`. |
-| `clamp` | Supported | Utility parity helper. |
-| `objectMove` | Supported | Utility parity helper. |
-| `listToObject` | Supported | Utility parity helper. |
-| `setPosition` | Supported | Utility parity helper. |
-| `setAutoScroll` | Supported | Utility parity helper. |
-| `ScrollDirection` | Supported | Utility enum parity helper. |
-| `Draggable` | Unsupported | Import-safe; throws when invoked/rendered. |
-| `Droppable` | Unsupported | Import-safe; throws when invoked/rendered. |
-| `useDraggable` | Unsupported | Import-safe; throws when invoked. |
-| `useDroppable` | Unsupported | Import-safe; throws when invoked. |
-| `useSortable` | Unsupported | Import-safe; throws when invoked. |
-| `useSortableList` | Unsupported | Import-safe; throws when invoked. |
+Support levels are documented in [`WEB_SUPPORT.md`](./WEB_SUPPORT.md) with evidence links.
 
-`Unsupported` means:
+Status policy:
 
-- importing the symbol is safe
-- runtime error is thrown only when that symbol is actually invoked/rendered on web
+- `Supported` requires a demo route plus Playwright coverage in Chromium and WebKit.
+- `Experimental` or `Unsupported` must include a documented reason and evidence.
 
-## CI Matrix
+## Upstream Parity Contract
 
-`ci.yml` validates:
+The web entry is contract-checked against installed upstream `react-native-reanimated-dnd`:
 
-- package checks: build, tests, metadata/version sync, pack smoke
-- consumer integrations: `vite`, `next`, `expo-web`, `expo-native`
+- export keys are normalized and compared (deduped + sorted)
+- diff output is structured as:
+  - `missingFromWeb`
+  - `extraOnWeb`
+  - `allowlistedExtrasUsed`
+  - `allowlistedOmissionsUsed`
+- baseline is lockfile-resolved (`bun.lock` at the checked commit)
 
-Run locally with:
+Run locally:
 
 ```bash
+bun run check:parity
 bun run build
 bun run test
+bun run test:e2e --project=chromium
+bun run test:e2e --project=webkit
 npm pack --pack-destination .artifacts .
 bun run consumer:matrix vite .artifacts/*.tgz
 ```
+
+## Sortable Reliability Focus
+
+Web reliability work is currently focused on sortable flows:
+
+- vertical and horizontal reorder behavior
+- deterministic final ordering for same drag path
+- pointer-leave resilience
+- settle checks after drop
+
+Demo routes live in `examples/`:
+
+- `/demos/sortable-vertical`
+- `/demos/sortable-horizontal`
+
+All web demos and Playwright specs are designed to run headless in CI without manual steps, device prompts, or secure-context assumptions beyond localhost.
