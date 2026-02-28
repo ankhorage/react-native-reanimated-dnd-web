@@ -1,6 +1,7 @@
 {
   "name": "@ankhorage/react-native-reanimated-dnd-web",
   "version": "0.1.0",
+  "license": "MIT",
   "private": true,
   "description": "Web adapter for react-native-reanimated-dnd with native passthrough and web-safe stubs.",
   "keywords": [
