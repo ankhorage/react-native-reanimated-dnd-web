@@ -36,7 +36,7 @@ async function dragOutsideAndBack(page: Page, testId: string, deltaX: number, de
 
   await page.mouse.move(startX, startY);
   await page.mouse.down();
-  await page.mouse.move(-40, -40, { steps: 8 });
+  await page.mouse.move(startX - 40, startY - 40, { steps: 8 });
   await page.mouse.move(startX + deltaX, startY + deltaY, { steps: 8 });
   await page.mouse.up();
 }
