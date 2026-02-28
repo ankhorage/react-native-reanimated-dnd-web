@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.1.0
+## 0.1.2
 
 - Added split entrypoints: `index.native` and `index.web`.
 - Native entry now re-exports upstream `react-native-reanimated-dnd`.
