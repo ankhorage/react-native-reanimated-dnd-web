@@ -1,0 +1,4 @@
+.artifacts/
+.npm-cache/
+dist/
+node_modules/

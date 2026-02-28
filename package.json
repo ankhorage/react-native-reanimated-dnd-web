@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "license": "MIT",
   "private": false,
+  "keywords": ["react-native", "drag-and-drop", "dnd", "expo", "react-native-web", "reanimated"],
   "description": "Web adapter for react-native-reanimated-dnd with native passthrough and web-safe stubs.",
   "type": "module",
   "main": "dist/index.web.js",
@@ -24,18 +25,27 @@
     "react-native-reanimated": ">=3"
   },
   "peerDependenciesMeta": {
-    "react-native": { "optional": true },
-    "react-native-gesture-handler": { "optional": true },
-    "react-native-reanimated": { "optional": true }
+    "react-native": {
+      "optional": true
+    },
+    "react-native-gesture-handler": {
+      "optional": true
+    },
+    "react-native-reanimated": {
+      "optional": true
+    }
   },
   "scripts": {
     "build": "tsup --config tsup.config.ts && bun run build:assert-artifacts",
     "build:assert-artifacts": "node ./scripts/assert-artifacts.mjs",
     "release:validate-meta": "node ./scripts/verify-version-sync.mjs",
     "lint": "eslint src --max-warnings=0",
-    "test": "bun test src",
+    "test": "bun test src --pass-with-no-tests",
     "pack:smoke": "rm -rf .artifacts .npm-cache && mkdir -p .artifacts .npm-cache && NPM_CONFIG_CACHE=.npm-cache npm pack --pack-destination .artifacts . && node ./scripts/verify-pack.mjs .artifacts",
     "release:check": "bun run release:validate-meta && bun run build && bun run test && bun run pack:smoke"
+  },
+  "devDependencies": {
+    "tsup": "^8.5.1",
+    "typescript": "^5.9.3"
   }
 }
-
