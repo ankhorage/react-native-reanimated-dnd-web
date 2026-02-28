@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.2.0
+
+- Switched web entry to upstream export passthrough with sortable-only compatibility overrides.
+- Removed web throw-stub behavior for non-sortable symbols; symbols now execute upstream behavior on web.
+- Added lockfile-resolved upstream export parity checker (`scripts/check-export-parity.ts`) and allowlist config (`tests/export-parity.config.ts`).
+- Added sortable demo routes under `examples/` and Playwright E2E coverage for Chromium and WebKit.
+- Added `WEB_SUPPORT.md` with evidence-based support levels and sortable risk coverage notes.
+- Added CI web E2E jobs (`chromium`, `webkit`) and parity check in release validation.
+
 ## 0.1.2
 
 - Declared stable adapter contract for `0.1.x`: native passthrough + scoped web support.

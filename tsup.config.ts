@@ -5,6 +5,7 @@ export default defineConfig([
     entry: {
       'index.native': 'src/index.native.ts',
       'index.web': 'src/index.web.tsx',
+      'sortableCompat.web': 'src/sortableCompat.web.tsx',
     },
     format: ['esm'],
     target: 'es2022',

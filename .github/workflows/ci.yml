@@ -31,6 +31,40 @@ jobs:
       - name: Release checks
         run: bun run release:check
 
+  web-e2e:
+    name: web-e2e-${{ matrix.browser }}
+    needs: package-check
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        browser:
+          - chromium
+          - webkit
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Install Playwright browsers
+        run: bunx playwright install --with-deps ${{ matrix.browser }}
+
+      - name: Run web e2e
+        run: bun run test:e2e --project=${{ matrix.browser }}
+
   consumer-matrix:
     name: consumer-${{ matrix.target }}
     needs: package-check

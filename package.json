@@ -1,6 +1,6 @@
 {
   "name": "@ankhorage/react-native-reanimated-dnd-web",
-  "version": "0.1.2",
+  "version": "0.2.0",
   "license": "MIT",
   "private": false,
   "keywords": [
@@ -11,7 +11,7 @@
     "react-native-web",
     "reanimated"
   ],
-  "description": "Web adapter for react-native-reanimated-dnd with native passthrough and web-safe stubs.",
+  "description": "Web adapter for react-native-reanimated-dnd with upstream passthrough and sortable web compatibility.",
   "type": "module",
   "main": "dist/index.web.js",
   "react-native": "dist/index.native.js",
@@ -53,12 +53,23 @@
     "release:validate-meta": "node ./scripts/verify-version-sync.mjs",
     "lint": "eslint src --max-warnings=0",
     "test": "bun test src",
+    "check:parity": "bun ./scripts/check-export-parity.ts",
+    "test:e2e": "playwright test --config playwright.config.ts",
+    "demo:dev": "vite --config examples/vite.config.ts examples",
+    "demo:build": "vite build --config examples/vite.config.ts examples",
     "consumer:matrix": "bash ./scripts/run-consumer-matrix.sh",
     "pack:smoke": "rm -rf .artifacts .npm-cache && mkdir -p .artifacts .npm-cache && NPM_CONFIG_CACHE=.npm-cache npm pack --pack-destination .artifacts . && node ./scripts/verify-pack.mjs .artifacts",
-    "release:check": "bun run release:validate-meta && bun run build && bun run test && bun run pack:smoke"
+    "release:check": "bun run release:validate-meta && bun run check:parity && bun run build && bun run test && bun run pack:smoke"
   },
   "devDependencies": {
+    "@playwright/test": "^1.56.1",
+    "@vitejs/plugin-react": "^5.0.4",
+    "eslint": "^9.39.1",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "react-native-web": "^0.21.2",
     "tsup": "^8.5.1",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "vite": "^7.1.7"
   }
 }

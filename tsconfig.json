@@ -11,5 +11,5 @@
     "esModuleInterop": true,
     "resolveJsonModule": true
   },
-  "include": ["src", "scripts", "tsup.config.ts"]
+  "include": ["src", "scripts", "tests", "examples", "playwright.config.ts", "tsup.config.ts"]
 }

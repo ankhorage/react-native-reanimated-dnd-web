@@ -1,111 +1,78 @@
 import { describe, expect, mock, test } from 'bun:test';
 
 mock.module('react-native', () => ({
-  View: () => null,
+  View: ({ children }: { children?: unknown }) => children ?? null,
   StyleSheet: {
     create: <T extends Record<string, unknown>>(styles: T) => styles,
   },
 }));
 
-const {
-  Draggable,
-  DropProvider,
-  Droppable,
-  ScrollDirection,
-  Sortable,
-  SortableItem,
-  clamp,
-  listToObject,
-  objectMove,
-  setAutoScroll,
-  setPosition,
-  useDraggable,
-  useDroppable,
-  useSortable,
-  useSortableList,
-} = await import('./index.web');
+const upstream = {
+  Draggable: () => null,
+  DropProvider: ({ children }: { children?: unknown }) => children ?? null,
+  Droppable: () => null,
+  ScrollDirection: {
+    None: 'none',
+    Up: 'up',
+    Down: 'down',
+  },
+  HorizontalScrollDirection: {
+    None: 'none',
+    Left: 'left',
+    Right: 'right',
+  },
+  SortableDirection: {
+    Vertical: 'vertical',
+    Horizontal: 'horizontal',
+  },
+  DraggableState: {
+    IDLE: 'IDLE',
+    DRAGGING: 'DRAGGING',
+    DROPPED: 'DROPPED',
+  },
+  SlotsContext: { Provider: () => null },
+  Sortable: () => null,
+  SortableItem: Object.assign(() => null, {
+    Handle: () => null,
+  }),
+  clamp: (value: number) => value,
+  listToObject: () => ({}),
+  objectMove: () => ({}),
+  setAutoScroll: () => undefined,
+  setPosition: () => undefined,
+  useDraggable: () => ({}),
+  useDroppable: () => ({}),
+  useSortable: () => ({}),
+  useSortableList: () => ({}),
+};
 
-describe('web adapter utilities', () => {
-  test('clamp keeps values inside bounds', () => {
-    expect(clamp(-2, 0, 3)).toBe(0);
-    expect(clamp(2, 0, 3)).toBe(2);
-    expect(clamp(8, 0, 3)).toBe(3);
+mock.module('react-native-reanimated-dnd', () => upstream);
+
+const adapter = await import('./index.web');
+
+describe('web entry exports', () => {
+  test('re-exports upstream non-sortable symbols unchanged', () => {
+    expect(adapter.Draggable).toBe(upstream.Draggable);
+    expect(adapter.Droppable).toBe(upstream.Droppable);
+    expect(adapter.DropProvider).toBe(upstream.DropProvider);
+    expect(adapter.useDraggable).toBe(upstream.useDraggable);
+    expect(adapter.useDroppable).toBe(upstream.useDroppable);
+    expect(adapter.ScrollDirection).toBe(upstream.ScrollDirection);
+    expect(adapter.HorizontalScrollDirection).toBe(upstream.HorizontalScrollDirection);
+    expect(adapter.SortableDirection).toBe(upstream.SortableDirection);
+    expect(adapter.DraggableState).toBe(upstream.DraggableState);
+    expect(adapter.SlotsContext).toBe(upstream.SlotsContext);
   });
 
-  test('objectMove reorders positions by index', () => {
-    const initial = { a: 0, b: 1, c: 2 };
-    expect(objectMove(initial, 0, 2)).toEqual({ b: 0, c: 1, a: 2 });
-    expect(objectMove(initial, -4, 22)).toEqual({ b: 0, c: 1, a: 2 });
+  test('overrides sortable symbols with web compat implementations', () => {
+    expect(adapter.Sortable).not.toBe(upstream.Sortable);
+    expect(adapter.SortableItem).not.toBe(upstream.SortableItem);
+    expect(adapter.useSortable).not.toBe(upstream.useSortable);
+    expect(adapter.useSortableList).not.toBe(upstream.useSortableList);
   });
 
-  test('listToObject builds a position map from ids', () => {
-    expect(
-      listToObject([
-        { id: 'a', label: 'Alpha' },
-        { id: 'b', label: 'Beta' },
-      ]),
-    ).toEqual({ a: 0, b: 1 });
-  });
-
-  test('setPosition updates plain-object positions', () => {
-    const positions: Record<string, number> = { a: 0, b: 1, c: 2 };
-    setPosition(60, 3, positions, 'a', 50);
-    expect(positions).toEqual({ b: 0, a: 1, c: 2 });
-  });
-
-  test('setPosition updates SharedValue-like positions', () => {
-    const positions = { value: { a: 0, b: 1, c: 2 } };
-    setPosition(120, 3, positions, 'a', 50);
-    expect(positions.value).toEqual({ b: 0, c: 1, a: 2 });
-  });
-
-  test('setAutoScroll writes shared direction values', () => {
-    const autoScroll = { value: ScrollDirection.None };
-
-    setAutoScroll(1, 0, 200, 20, autoScroll);
-    expect(autoScroll.value).toBe(ScrollDirection.Up);
-
-    setAutoScroll(199, 0, 200, 20, autoScroll);
-    expect(autoScroll.value).toBe(ScrollDirection.Down);
-
-    setAutoScroll(100, 0, 200, 20, autoScroll);
-    expect(autoScroll.value).toBe(ScrollDirection.None);
-  });
-});
-
-describe('supported export surface', () => {
-  test('exports sortable components and provider', () => {
-    expect(['function', 'object']).toContain(typeof Sortable);
-    expect(typeof SortableItem).toBe('function');
-    expect(typeof SortableItem.Handle).toBe('function');
-
-    const fragment = DropProvider({ children: 'child' });
-    expect(fragment).toBeDefined();
-  });
-});
-
-describe('unsupported web exports', () => {
-  test('are import-safe and only throw when invoked', () => {
-    expect(typeof Draggable).toBe('function');
-    expect(typeof Droppable).toBe('function');
-    expect(typeof useDraggable).toBe('function');
-    expect(typeof useDroppable).toBe('function');
-    expect(typeof useSortable).toBe('function');
-    expect(typeof useSortableList).toBe('function');
-  });
-
-  test('throw a clear error when hooks are invoked', () => {
-    expect(() => useDraggable()).toThrow(/not supported on web yet/i);
-    expect(() => useDroppable()).toThrow(/not supported on web yet/i);
-    expect(() => useSortable()).toThrow(/not supported on web yet/i);
-    expect(() => useSortableList()).toThrow(/not supported on web yet/i);
-  });
-
-  test('throw a clear error when unsupported components are rendered', () => {
-    const renderDraggable = Draggable as unknown as (props: Record<string, unknown>) => unknown;
-    const renderDroppable = Droppable as unknown as (props: Record<string, unknown>) => unknown;
-
-    expect(() => renderDraggable({})).toThrow(/not supported on web yet/i);
-    expect(() => renderDroppable({})).toThrow(/not supported on web yet/i);
+  test('exposes SortableItem.Handle on compat export', () => {
+    expect(typeof adapter.SortableItem).toBe('function');
+    expect(typeof adapter.SortableItem.Handle).toBe('function');
   });
 });
