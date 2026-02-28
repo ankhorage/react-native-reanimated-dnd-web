@@ -1,0 +1,66 @@
+{
+  "name": "@ankhorage/react-native-reanimated-dnd-web",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Web adapter for react-native-reanimated-dnd with native passthrough and web-safe stubs.",
+  "keywords": [
+    "react-native",
+    "drag-and-drop",
+    "dnd",
+    "expo",
+    "react-native-web",
+    "reanimated"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ankhorage/ankhorage4.git",
+    "directory": "packages/react-native-reanimated-dnd-web"
+  },
+  "bugs": {
+    "url": "https://github.com/ankhorage/ankhorage4/issues"
+  },
+  "homepage": "https://github.com/ankhorage/ankhorage4/tree/main/packages/react-native-reanimated-dnd-web",
+  "type": "module",
+  "main": "dist/index.web.js",
+  "react-native": "dist/index.native.js",
+  "browser": "dist/index.web.js",
+  "types": "dist/index.d.ts",
+  "sideEffects": false,
+  "files": ["dist", "README.md", "CHANGELOG.md"],
+  "scripts": {
+    "build": "tsup --config tsup.config.ts && bun run build:assert-artifacts",
+    "build:assert-artifacts": "node ./scripts/assert-artifacts.mjs",
+    "release:validate-meta": "node ./scripts/verify-version-sync.mjs",
+    "lint": "eslint src --max-warnings=0",
+    "test": "bun test src",
+    "release:check": "bun run release:validate-meta && bun run build && bun run test && bun run pack:smoke",
+    "pack:smoke": "rm -rf .artifacts .npm-cache && mkdir -p .artifacts .npm-cache && NPM_CONFIG_CACHE=.npm-cache npm pack --pack-destination .artifacts . && node ./scripts/verify-pack.mjs .artifacts",
+    "consumer:matrix:vite": "./scripts/run-consumer-matrix.sh vite .artifacts/*.tgz",
+    "consumer:matrix:next": "./scripts/run-consumer-matrix.sh next .artifacts/*.tgz",
+    "consumer:matrix:expo-web": "./scripts/run-consumer-matrix.sh expo-web .artifacts/*.tgz",
+    "consumer:matrix:expo-native": "./scripts/run-consumer-matrix.sh expo-native .artifacts/*.tgz"
+  },
+  "dependencies": {
+    "react-native-reanimated-dnd": "~1.1.0"
+  },
+  "peerDependencies": {
+    "react": ">=18",
+    "react-native": ">=0.73",
+    "react-native-gesture-handler": ">=2",
+    "react-native-reanimated": ">=3"
+  },
+  "peerDependenciesMeta": {
+    "react-native": {
+      "optional": true
+    },
+    "react-native-gesture-handler": {
+      "optional": true
+    },
+    "react-native-reanimated": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "tsup": "^8.5.1"
+  }
+}
