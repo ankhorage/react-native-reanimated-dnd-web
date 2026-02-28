@@ -3,7 +3,8 @@
 ## 0.2.0
 
 - Switched web entry to upstream export passthrough with sortable-only compatibility overrides.
-- Removed web throw-stub behavior for non-sortable symbols; symbols now execute upstream behavior on web.
+- Replaced static upstream web runtime re-export with a parity-compatible compatibility layer to avoid bundler parse failures in Vite/Next consumer builds.
+- Removed web throw-stub behavior for non-sortable symbols; symbols now use compatibility implementations on web.
 - Added lockfile-resolved upstream export parity checker (`scripts/check-export-parity.ts`) and allowlist config (`tests/export-parity.config.ts`).
 - Added sortable demo routes under `examples/` and Playwright E2E coverage for Chromium and WebKit.
 - Added `WEB_SUPPORT.md` with evidence-based support levels and sortable risk coverage notes.

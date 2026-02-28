@@ -1,2 +1,21 @@
-export * from 'react-native-reanimated-dnd';
-export { Sortable, SortableItem, useSortable, useSortableList } from './sortableCompat.web';
+export {
+  Draggable,
+  DraggableState,
+  DropProvider,
+  Droppable,
+  HorizontalScrollDirection,
+  ScrollDirection,
+  SlotsContext,
+  Sortable,
+  SortableDirection,
+  SortableItem,
+  clamp,
+  listToObject,
+  objectMove,
+  setAutoScroll,
+  setPosition,
+  useDraggable,
+  useDroppable,
+  useSortable,
+  useSortableList,
+} from './sortableCompat.web';

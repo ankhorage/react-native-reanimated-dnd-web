@@ -5,7 +5,7 @@
 Platform adapter for `react-native-reanimated-dnd`:
 
 - native: passthrough re-export of upstream package
-- web: passthrough export surface with sortable reliability overrides
+- web: parity-compatible export surface implemented by a web compatibility layer
 
 The package keeps `@ankhorage/react-native-reanimated-dnd-web` as a stable import path while preserving upstream API shape and adding deterministic sortable behavior on web.
 

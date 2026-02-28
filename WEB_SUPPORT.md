@@ -21,12 +21,12 @@ This matrix defines web support status for `@ankhorage/react-native-reanimated-d
 | `SortableItem` | Supported | `tests/e2e/sortable.spec.ts` (including `SortableItem.Handle`) |
 | `useSortableList` | Experimental | Runtime parity + unit export checks; no direct Playwright hook-level contract yet |
 | `useSortable` | Experimental | Runtime parity + unit export checks; no direct Playwright hook-level contract yet |
-| `DropProvider` | Experimental | Available through upstream passthrough; no dedicated web reliability suite yet |
-| `Draggable` | Experimental | Available through upstream passthrough; no dedicated web reliability suite yet |
-| `Droppable` | Experimental | Available through upstream passthrough; no dedicated web reliability suite yet |
-| `useDraggable` | Experimental | Available through upstream passthrough; no dedicated web reliability suite yet |
-| `useDroppable` | Experimental | Available through upstream passthrough; no dedicated web reliability suite yet |
-| `clamp`, `listToObject`, `objectMove`, `setPosition`, `setAutoScroll` | Experimental | Exposed via upstream passthrough; no dedicated web utility contract tests yet |
+| `DropProvider` | Experimental | Web compatibility implementation; no dedicated web reliability suite yet |
+| `Draggable` | Experimental | Web compatibility implementation; no dedicated drag/drop web reliability suite yet |
+| `Droppable` | Experimental | Web compatibility implementation; no dedicated drag/drop web reliability suite yet |
+| `useDraggable` | Experimental | Web compatibility implementation; no dedicated hook-level web reliability suite yet |
+| `useDroppable` | Experimental | Web compatibility implementation; no dedicated hook-level web reliability suite yet |
+| `clamp`, `listToObject`, `objectMove`, `setPosition`, `setAutoScroll` | Experimental | Web compatibility utility implementation; no dedicated utility contract tests yet |
 
 ## Upstream Parity Notes
 

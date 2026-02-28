@@ -1,8 +1,10 @@
 import React, {
   createContext,
   memo,
+  type ForwardedRef,
   type ReactElement,
   type ReactNode,
+  forwardRef,
   useCallback,
   useContext,
   useEffect,
@@ -12,13 +14,21 @@ import React, {
 } from 'react';
 import { type StyleProp, StyleSheet, View, type ViewStyle } from 'react-native';
 import {
-  type HorizontalScrollDirection,
-  type ScrollDirection,
-  type SortableDirection,
+  type DraggableProps,
+  type DraggableState as DraggableStateType,
+  type DropProviderProps,
+  type DroppableProps,
+  type HorizontalScrollDirection as HorizontalScrollDirectionType,
+  type ScrollDirection as ScrollDirectionType,
+  type SortableDirection as SortableDirectionType,
   type SortableHandleProps,
   type SortableItemProps,
   type SortableProps,
   type SortableRenderItemProps,
+  type UseDraggableOptions,
+  type UseDraggableReturn,
+  type UseDroppableOptions,
+  type UseDroppableReturn,
   type UseSortableListOptions,
   type UseSortableListReturn,
   type UseSortableOptions,
@@ -83,16 +93,56 @@ type SortableItemDragApi = {
 };
 
 const DRAG_THRESHOLD = 6;
-const DIRECTION_VERTICAL = 'vertical' as SortableDirection;
-const DIRECTION_HORIZONTAL = 'horizontal' as SortableDirection;
-const SCROLL_NONE = 'none' as ScrollDirection;
-const HORIZONTAL_SCROLL_NONE = 'none' as HorizontalScrollDirection;
+const DIRECTION_VERTICAL = 'vertical' as SortableDirectionType;
+const DIRECTION_HORIZONTAL = 'horizontal' as SortableDirectionType;
+const SCROLL_NONE = 'none' as ScrollDirectionType;
+const HORIZONTAL_SCROLL_NONE = 'none' as HorizontalScrollDirectionType;
+
+export const ScrollDirection = {
+  None: 'none',
+  Up: 'up',
+  Down: 'down',
+} as const;
+
+export const HorizontalScrollDirection = {
+  None: 'none',
+  Left: 'left',
+  Right: 'right',
+} as const;
+
+export const SortableDirection = {
+  Vertical: 'vertical',
+  Horizontal: 'horizontal',
+} as const;
+
+export const DraggableState = {
+  IDLE: 'IDLE',
+  DRAGGING: 'DRAGGING',
+  DROPPED: 'DROPPED',
+} as const satisfies Record<string, DraggableStateType>;
+
+const slotsContextFallback = {
+  register: (_id: number, _slot: unknown) => undefined,
+  unregister: (_id: number) => undefined,
+  getSlots: () => ({}),
+  isRegistered: (_id: number) => false,
+  setActiveHoverSlot: (_id: number | null) => undefined,
+  activeHoverSlotId: null as number | null,
+  registerPositionUpdateListener: (_id: string, _listener: () => void) => undefined,
+  unregisterPositionUpdateListener: (_id: string) => undefined,
+  requestPositionUpdate: () => undefined,
+  registerDroppedItem: (_draggableId: string, _droppableId: string, _itemData: unknown) => undefined,
+  unregisterDroppedItem: (_draggableId: string) => undefined,
+  getDroppedItems: () => ({}),
+  hasAvailableCapacity: (_droppableId: string) => true,
+  onDragging: (_payload: unknown) => undefined,
+  onDragStart: undefined as ((data: unknown) => void) | undefined,
+  onDragEnd: undefined as ((data: unknown) => void) | undefined,
+};
+
+export const SlotsContext = createContext(slotsContextFallback);
 
 const SortableItemDragContextValue = createContext<SortableItemDragApi | null>(null);
-
-function clamp(value: number, lowerBound: number, upperBound: number): number {
-  return Math.min(Math.max(value, lowerBound), upperBound);
-}
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
@@ -150,11 +200,23 @@ function writePositions(positions: unknown, next: PositionMap): void {
   Object.assign(positions, next);
 }
 
+function writeSharedValue<T>(sharedValue: unknown, value: T): void {
+  if (!isRecord(sharedValue) || !('value' in sharedValue)) {
+    return;
+  }
+
+  (sharedValue as SharedValueLike<T>).value = value;
+}
+
 function createSharedValue<T>(value: T): SharedValueLike<T> {
   return { value };
 }
 
-function objectMove(object: PositionMap, from: number, to: number): PositionMap {
+export function clamp(value: number, lowerBound: number, upperBound: number): number {
+  return Math.min(Math.max(value, lowerBound), upperBound);
+}
+
+export function objectMove(object: PositionMap, from: number, to: number): PositionMap {
   const entries = Object.entries(object).sort(([, indexA], [, indexB]) => indexA - indexB);
   if (entries.length === 0) {
     return {};
@@ -174,6 +236,55 @@ function objectMove(object: PositionMap, from: number, to: number): PositionMap 
     next[id] = index;
   }
   return next;
+}
+
+export function listToObject<T extends { id: string }>(list: T[]): PositionMap {
+  const next: PositionMap = {};
+  for (const [index, item] of list.entries()) {
+    next[item.id] = index;
+  }
+  return next;
+}
+
+export function setPosition(
+  positionY: number,
+  itemsCount: number,
+  positions: unknown,
+  id: string,
+  itemHeight: number,
+): void {
+  if (!id || itemsCount <= 0 || itemHeight <= 0) {
+    return;
+  }
+
+  const currentPositions = readPositions(positions);
+  const from = currentPositions[id];
+  if (typeof from !== 'number') {
+    return;
+  }
+
+  const nextPosition = clamp(Math.round(positionY / itemHeight), 0, itemsCount - 1);
+  writePositions(positions, objectMove(currentPositions, from, nextPosition));
+}
+
+export function setAutoScroll(
+  positionY: number,
+  lowerBound: number,
+  upperBound: number,
+  scrollThreshold: number,
+  autoScroll: unknown,
+): void {
+  if (positionY <= lowerBound + scrollThreshold) {
+    writeSharedValue(autoScroll, ScrollDirection.Up as ScrollDirectionType);
+    return;
+  }
+
+  if (positionY >= upperBound - scrollThreshold) {
+    writeSharedValue(autoScroll, ScrollDirection.Down as ScrollDirectionType);
+    return;
+  }
+
+  writeSharedValue(autoScroll, ScrollDirection.None as ScrollDirectionType);
 }
 
 function createPositionsFromIds(ids: string[]): PositionMap {
@@ -496,10 +607,10 @@ function SortableImpl<TData>({
   const positionsRef = useRef<SharedValueLike<PositionMap>>(createSharedValue({}));
   const lowerBoundRef = useRef<SharedValueLike<number>>(createSharedValue(0));
   const leftBoundRef = useRef<SharedValueLike<number>>(createSharedValue(0));
-  const autoScrollDirectionRef = useRef<SharedValueLike<ScrollDirection>>(
+  const autoScrollDirectionRef = useRef<SharedValueLike<ScrollDirectionType>>(
     createSharedValue(SCROLL_NONE),
   );
-  const autoScrollHorizontalDirectionRef = useRef<SharedValueLike<HorizontalScrollDirection>>(
+  const autoScrollHorizontalDirectionRef = useRef<SharedValueLike<HorizontalScrollDirectionType>>(
     createSharedValue(HORIZONTAL_SCROLL_NONE),
   );
 
@@ -576,6 +687,72 @@ function SortableImpl<TData>({
 
 export const Sortable = memo(SortableImpl) as typeof SortableImpl;
 
+type DraggableHandleProps = {
+  children?: ReactNode;
+  style?: StyleProp<ViewStyle>;
+};
+
+function DraggableHandle({ children, style }: DraggableHandleProps): React.JSX.Element {
+  return <View style={style}>{children}</View>;
+}
+
+function DraggableComponent<TData = unknown>(
+  { style, children }: DraggableProps<TData>,
+  _ref: ForwardedRef<unknown>,
+): React.JSX.Element {
+  return <View style={style}>{children}</View>;
+}
+
+const ForwardedDraggable = forwardRef(DraggableComponent) as <TData = unknown>(
+  props: DraggableProps<TData> & { ref?: ForwardedRef<unknown> },
+) => React.JSX.Element;
+
+export const Draggable = Object.assign(ForwardedDraggable, {
+  Handle: DraggableHandle,
+});
+
+export function Droppable<TData = unknown>({
+  style,
+  children,
+}: DroppableProps<TData>): React.JSX.Element {
+  return <View style={style}>{children}</View>;
+}
+
+export function DropProvider({
+  children,
+}: DropProviderProps): React.JSX.Element {
+  return <SlotsContext.Provider value={slotsContextFallback}>{children}</SlotsContext.Provider>;
+}
+
+export function useDraggable<TData = unknown>(
+  _options: UseDraggableOptions<TData>,
+): UseDraggableReturn {
+  return {
+    animatedViewProps: {
+      style: {},
+      onLayout: () => undefined,
+    },
+    gesture: {},
+    state: DraggableState.IDLE,
+    animatedViewRef: { current: null } as unknown as UseDraggableReturn['animatedViewRef'],
+    hasHandle: false,
+  };
+}
+
+export function useDroppable<TData = unknown>(
+  _options: UseDroppableOptions<TData>,
+): UseDroppableReturn {
+  return {
+    viewProps: {
+      onLayout: () => undefined,
+      style: {},
+    },
+    isActive: false,
+    activeStyle: undefined,
+    animatedViewRef: { current: null } as unknown as UseDroppableReturn['animatedViewRef'],
+  };
+}
+
 export function useSortable<T>(_options: UseSortableOptions<T>): UseSortableReturn {
   const panGestureHandler = useMemo(() => ({ onStart: () => undefined }), []);
 
@@ -594,7 +771,7 @@ export function useSortableList<TData extends { id: string }>(
 
   const positionsRef = useRef<SharedValueLike<PositionMap>>(createSharedValue({}));
   const scrollYRef = useRef<SharedValueLike<number>>(createSharedValue(0));
-  const autoScrollRef = useRef<SharedValueLike<ScrollDirection>>(
+  const autoScrollRef = useRef<SharedValueLike<ScrollDirectionType>>(
     createSharedValue(SCROLL_NONE),
   );
   const scrollViewRef = useRef<unknown>(null);
