@@ -1,9 +1,16 @@
 {
   "name": "@ankhorage/react-native-reanimated-dnd-web",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "license": "MIT",
   "private": false,
-  "keywords": ["react-native", "drag-and-drop", "dnd", "expo", "react-native-web", "reanimated"],
+  "keywords": [
+    "react-native",
+    "drag-and-drop",
+    "dnd",
+    "expo",
+    "react-native-web",
+    "reanimated"
+  ],
   "description": "Web adapter for react-native-reanimated-dnd with native passthrough and web-safe stubs.",
   "type": "module",
   "main": "dist/index.web.js",
@@ -11,7 +18,12 @@
   "browser": "dist/index.web.js",
   "types": "dist/index.d.ts",
   "sideEffects": false,
-  "files": ["dist", "README.md", "LICENSE", "CHANGELOG.md"],
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE",
+    "CHANGELOG.md"
+  ],
   "publishConfig": {
     "access": "public"
   },
