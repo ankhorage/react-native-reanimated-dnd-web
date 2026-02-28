@@ -51,7 +51,6 @@
     "build": "tsup --config tsup.config.ts && bun run build:assert-artifacts",
     "build:assert-artifacts": "node ./scripts/assert-artifacts.mjs",
     "release:validate-meta": "node ./scripts/verify-version-sync.mjs",
-    "lint": "eslint src --max-warnings=0",
     "test": "bun test src",
     "check:parity": "bun ./scripts/check-export-parity.ts",
     "test:e2e": "playwright test --config playwright.config.ts",
@@ -64,7 +63,7 @@
   "devDependencies": {
     "@playwright/test": "^1.56.1",
     "@vitejs/plugin-react": "^5.0.4",
-    "eslint": "^9.39.1",
+    "esbuild": "^0.27.3",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-native-web": "^0.21.2",
