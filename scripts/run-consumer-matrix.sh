@@ -266,7 +266,14 @@ EOF
   cat > "${APP_DIR}/App.js" <<'EOF'
 import React from 'react';
 import { Text, View } from 'react-native';
-import { clamp, DropProvider, Sortable, SortableItem } from '@ankhorage/react-native-reanimated-dnd-web';
+import {
+  clamp,
+  Draggable,
+  Droppable,
+  DropProvider,
+  Sortable,
+  SortableItem,
+} from '@ankhorage/react-native-reanimated-dnd-web';
 
 const data = [{ id: 'a', label: 'Alpha' }];
 
@@ -275,26 +282,64 @@ export default function App() {
     <DropProvider>
       <View style={{ padding: 24 }}>
         <Text>{`Clamp: ${clamp(8, 0, 2)}`}</Text>
-        <Sortable
-          data={data}
-          itemHeight={44}
-          itemKeyExtractor={(item) => item.id}
-          renderItem={({ item, id, positions, itemsCount, autoScrollDirection, lowerBound }) => (
-            <SortableItem
-              id={id}
-              data={item}
-              positions={positions}
-              itemsCount={itemsCount}
-              itemHeight={44}
-              lowerBound={lowerBound}
-              autoScrollDirection={autoScrollDirection}
+        <View style={{ marginBottom: 24 }}>
+          <Sortable
+            data={data}
+            itemHeight={44}
+            itemKeyExtractor={(item) => item.id}
+            renderItem={({ item, id, positions, itemsCount, autoScrollDirection, lowerBound }) => (
+              <SortableItem
+                id={id}
+                data={item}
+                positions={positions}
+                itemsCount={itemsCount}
+                itemHeight={44}
+                lowerBound={lowerBound}
+                autoScrollDirection={autoScrollDirection}
+              >
+                <View style={{ height: 44, justifyContent: 'center' }}>
+                  <Text>{item.label}</Text>
+                </View>
+              </SortableItem>
+            )}
+          />
+        </View>
+        <View style={{ marginBottom: 12 }}>
+          <Droppable
+            droppableId="zone-a"
+            capacity={2}
+            onDrop={() => undefined}
+            style={{
+              height: 72,
+              borderWidth: 1,
+              borderColor: '#64748b',
+              borderRadius: 12,
+              justifyContent: 'center',
+              paddingHorizontal: 16,
+              marginBottom: 12,
+            }}
+            activeStyle={{ backgroundColor: '#dcfce7', borderColor: '#16a34a' }}
+          >
+            <View style={{ flex: 1, justifyContent: 'center' }}>
+              <Text>Drop Zone</Text>
+            </View>
+          </Droppable>
+          <Draggable draggableId="drag-a" data={{ id: 'drag-a', label: 'Drag Me' }}>
+            <View
+              style={{
+                width: 160,
+                height: 56,
+                borderWidth: 1,
+                borderColor: '#94a3b8',
+                borderRadius: 12,
+                justifyContent: 'center',
+                paddingHorizontal: 16,
+              }}
             >
-              <View style={{ height: 44, justifyContent: 'center' }}>
-                <Text>{item.label}</Text>
-              </View>
-            </SortableItem>
-          )}
-        />
+              <Text>Drag Me</Text>
+            </View>
+          </Draggable>
+        </View>
       </View>
     </DropProvider>
   );

@@ -10,6 +10,8 @@ This matrix defines web support status for `@ankhorage/react-native-reanimated-d
 
 ## Demo Routes
 
+- `examples` route: `/demos/draggable-basic`
+- `examples` route: `/demos/draggable-dropzones`
 - `examples` route: `/demos/sortable-vertical`
 - `examples` route: `/demos/sortable-horizontal`
 
@@ -21,9 +23,9 @@ This matrix defines web support status for `@ankhorage/react-native-reanimated-d
 | `SortableItem` | Supported | `tests/e2e/sortable.spec.ts` (including `SortableItem.Handle`) |
 | `useSortableList` | Experimental | Runtime parity + unit export checks; no direct Playwright hook-level contract yet |
 | `useSortable` | Experimental | Runtime parity + unit export checks; no direct Playwright hook-level contract yet |
-| `DropProvider` | Experimental | Web compatibility implementation; no dedicated web reliability suite yet |
-| `Draggable` | Experimental | Web compatibility implementation; no dedicated drag/drop web reliability suite yet |
-| `Droppable` | Experimental | Web compatibility implementation; no dedicated drag/drop web reliability suite yet |
+| `DropProvider` | Supported | `tests/e2e/draggable.spec.ts` (`/demos/draggable-basic`, `/demos/draggable-dropzones`) |
+| `Draggable` | Supported | `tests/e2e/draggable.spec.ts` (free drag, handle-only drag, repeat drop overwrite, disabled drag) |
+| `Droppable` | Supported | `tests/e2e/draggable.spec.ts` (eligible targets, overlapping targets, disabled targets) |
 | `useDraggable` | Experimental | Web compatibility implementation; no dedicated hook-level web reliability suite yet |
 | `useDroppable` | Experimental | Web compatibility implementation; no dedicated hook-level web reliability suite yet |
 | `clamp`, `listToObject`, `objectMove`, `setPosition`, `setAutoScroll` | Experimental | Web compatibility utility implementation; no dedicated utility contract tests yet |
@@ -43,6 +45,17 @@ Covered by Playwright:
 - pointer leave + return path
 - settle checks (`200ms` stable window, `500ms` maximum settle time)
 - drag callback payload assertions
+- browser console warning/error assertions
+
+## Drag/Drop Risk Coverage
+
+Covered by Playwright:
+
+- free drag reset on miss
+- overlapping target resolution
+- handle-only dragging
+- dropped-items overwrite by `draggableId`
+- `dragDisabled` and `dropDisabled` behavior
 - browser console warning/error assertions
 
 Not fully covered yet:

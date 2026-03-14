@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.3.0
+
+- Added web compatibility implementations for `DropProvider`, `Droppable`, and `Draggable` with upstream-compatible `onDrop(data)` and `getDroppedItems()` semantics.
+- Added deterministic web drag/drop behavior for handle-only dragging, bounds and axis constraints, overlapping target resolution, disabled-state handling, and dropped-item overwrite by `draggableId`.
+- Split the web compatibility runtime into focused `src/web/*` modules while keeping sortable behavior intact.
+- Added draggable demo routes under `examples/` and Playwright coverage for Chromium and WebKit.
+- Expanded Expo consumer smoke coverage and updated `README.md` and `WEB_SUPPORT.md` for supported web drag/drop behavior.
+- Ensured non-bundled builds emit the internal `dist/web/*` modules required by the web entry.
+
 ## 0.2.0
 
 - Switched web entry to upstream export passthrough with sortable-only compatibility overrides.

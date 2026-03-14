@@ -7,7 +7,7 @@ Platform adapter for `react-native-reanimated-dnd`:
 - native: passthrough re-export of upstream package
 - web: parity-compatible export surface implemented by a web compatibility layer
 
-The package keeps `@ankhorage/react-native-reanimated-dnd-web` as a stable import path while preserving upstream API shape and adding deterministic sortable behavior on web.
+The package keeps `@ankhorage/react-native-reanimated-dnd-web` as a stable import path while preserving upstream API shape and adding deterministic sortable and drag/drop behavior on web.
 
 ## Install
 
@@ -20,7 +20,14 @@ npm install @ankhorage/react-native-reanimated-dnd-web react react-native react-
 Use the same import on native and web:
 
 ```ts
-import { DropProvider, Sortable, SortableItem, clamp } from '@ankhorage/react-native-reanimated-dnd-web';
+import {
+  Draggable,
+  Droppable,
+  DropProvider,
+  Sortable,
+  SortableItem,
+  clamp,
+} from '@ankhorage/react-native-reanimated-dnd-web';
 ```
 
 The package resolves to:
@@ -61,17 +68,23 @@ npm pack --pack-destination .artifacts .
 bun run consumer:matrix vite .artifacts/*.tgz
 ```
 
-## Sortable Reliability Focus
+## Web Reliability Focus
 
-Web reliability work is currently focused on sortable flows:
+Web reliability coverage currently includes:
 
 - vertical and horizontal reorder behavior
+- free drag with reset on miss
+- overlapping drop-zone resolution
+- handle-only dragging
+- `dragDisabled` and `dropDisabled` behavior
 - deterministic final ordering for same drag path
 - pointer-leave resilience
 - settle checks after drop
 
 Demo routes live in `examples/`:
 
+- `/demos/draggable-basic`
+- `/demos/draggable-dropzones`
 - `/demos/sortable-vertical`
 - `/demos/sortable-horizontal`
 
