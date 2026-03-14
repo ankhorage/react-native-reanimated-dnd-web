@@ -1,12 +1,5 @@
-import { beforeEach, describe, expect, mock, spyOn, test } from 'bun:test';
+import { beforeEach, describe, expect, spyOn, test } from 'bun:test';
 import React from 'react';
-
-mock.module('react-native', () => ({
-  View: ({ children }: { children?: unknown }) => children ?? null,
-  StyleSheet: {
-    create: <T extends Record<string, unknown>>(styles: T) => styles,
-  },
-}));
 
 const draggableModule = await import('./useDraggable.web');
 

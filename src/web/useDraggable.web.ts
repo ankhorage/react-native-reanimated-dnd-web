@@ -10,6 +10,7 @@ import React, {
 } from 'react';
 import type {
   DraggableState as DraggableStateType,
+  DroppedItemsMap,
   UseDraggableOptions,
   UseDraggableReturn,
 } from 'react-native-reanimated-dnd';
@@ -21,6 +22,7 @@ import {
   findMatchingSlot,
   getTranslatedRect,
   resolveAlignedDropPosition,
+  type DropSlotLike,
   type LayoutRect,
   type Translation,
 } from './geometry';
@@ -97,6 +99,23 @@ function getDragDistance(deltaX: number, deltaY: number): number {
   return Math.hypot(deltaX, deltaY);
 }
 
+function countDroppedItemsByDroppableId(
+  droppedItems: DroppedItemsMap,
+  ignoredDraggableId?: string,
+): Record<string, number> {
+  const counts: Record<string, number> = {};
+
+  for (const [draggableId, item] of Object.entries(droppedItems)) {
+    if (draggableId === ignoredDraggableId) {
+      continue;
+    }
+
+    counts[item.droppableId] = (counts[item.droppableId] ?? 0) + 1;
+  }
+
+  return counts;
+}
+
 export function useDraggableInternal<TData = unknown>(
   options: UseDraggableOptions<TData> & {
     children?: ReactNode;
@@ -125,6 +144,8 @@ export function useDraggableInternal<TData = unknown>(
   const [isDragging, setIsDragging] = useState(false);
 
   const translationRef = useRef<Translation>(getZeroTranslation());
+  const committedTranslationRef = useRef<Translation>(getZeroTranslation());
+  const committedStateRef = useRef<DraggableStateType>(DraggableState.IDLE);
   const dragDisabledRef = useRef(dragDisabled);
   const originRectRef = useRef<LayoutRect | null>(null);
   const draggableRectRef = useRef<LayoutRect | null>(null);
@@ -149,7 +170,7 @@ export function useDraggableInternal<TData = unknown>(
     unregisterPositionUpdateListener,
     registerDroppedItem,
     unregisterDroppedItem,
-    hasAvailableCapacity,
+    getDroppedItems,
     onDragging: contextOnDragging,
     onDragStart: contextOnDragStart,
     onDragEnd: contextOnDragEnd,
@@ -242,9 +263,18 @@ export function useDraggableInternal<TData = unknown>(
       }
 
       const currentRect = getTranslatedRect(originRect, draggableRect, nextTranslation);
-      return findMatchingSlot(getSlots(), currentRect, collisionAlgorithm, hasAvailableCapacity);
+      const droppedCountsByDroppableId = countDroppedItemsByDroppableId(
+        getDroppedItems(),
+        internalDraggableId,
+      );
+      const canAcceptDrop = (slot: DropSlotLike) => {
+        const capacity = slot.capacity ?? 1;
+        return (droppedCountsByDroppableId[slot.id] ?? 0) < capacity;
+      };
+
+      return findMatchingSlot(getSlots(), currentRect, collisionAlgorithm, canAcceptDrop);
     },
-    [collisionAlgorithm, getSlots, hasAvailableCapacity],
+    [collisionAlgorithm, getDroppedItems, getSlots, internalDraggableId],
   );
 
   const updateHoverState = useCallback(
@@ -269,7 +299,10 @@ export function useDraggableInternal<TData = unknown>(
     setActiveHoverSlot(null);
 
     if (!originRect || !draggableRect || !match) {
-      setTranslation(getZeroTranslation());
+      const resetTranslation = getZeroTranslation();
+      committedTranslationRef.current = resetTranslation;
+      committedStateRef.current = DraggableState.IDLE;
+      setTranslation(resetTranslation);
       unregisterDroppedItem(internalDraggableId);
       setState(DraggableState.IDLE);
       return;
@@ -278,10 +311,13 @@ export function useDraggableInternal<TData = unknown>(
     match.slot.onDrop?.(data);
     registerDroppedItem(internalDraggableId, match.slot.id, data);
     const targetPosition = resolveAlignedDropPosition(match.slot, draggableRect);
-    setTranslation({
+    const nextTranslation = {
       x: targetPosition.x - originRect.x,
       y: targetPosition.y - originRect.y,
-    });
+    };
+    committedTranslationRef.current = nextTranslation;
+    committedStateRef.current = DraggableState.DROPPED;
+    setTranslation(nextTranslation);
     setState(DraggableState.DROPPED);
   }, [
     data,
@@ -337,18 +373,30 @@ export function useDraggableInternal<TData = unknown>(
     processDrop();
   }, [contextOnDragEnd, data, onDragEnd, processDrop, setActiveHoverSlot]);
 
+  const cancelActiveInteraction = useCallback(() => {
+    pendingDragRef.current = null;
+    activeDragRef.current = null;
+    setIsDragging(false);
+    clearListeners();
+    setActiveHoverSlot(null);
+    setTranslation(committedTranslationRef.current);
+    setState(committedStateRef.current);
+
+    if (committedStateRef.current === DraggableState.IDLE) {
+      unregisterDroppedItem(internalDraggableId);
+    }
+  }, [clearListeners, internalDraggableId, setActiveHoverSlot, setTranslation, unregisterDroppedItem]);
+
   useEffect(() => {
     dragDisabledRef.current = dragDisabled;
     if (!dragDisabled) {
       return;
     }
 
-    pendingDragRef.current = null;
-    activeDragRef.current = null;
-    setIsDragging(false);
-    clearListeners();
-    setActiveHoverSlot(null);
-  }, [clearListeners, dragDisabled, setActiveHoverSlot]);
+    if (pendingDragRef.current || activeDragRef.current || state === DraggableState.DRAGGING) {
+      cancelActiveInteraction();
+    }
+  }, [cancelActiveInteraction, dragDisabled, state]);
 
   useEffect(() => {
     if (!children || !handleComponent) {

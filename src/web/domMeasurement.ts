@@ -42,11 +42,16 @@ type RefLike = {
 };
 
 function isElementLike(value: unknown): value is ElementLike {
-  return typeof value === 'object' && value !== null && 'getBoundingClientRect' in value;
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    'getBoundingClientRect' in value &&
+    typeof value.getBoundingClientRect === 'function'
+  );
 }
 
 function isMeasurableLike(value: unknown): value is MeasurableLike {
-  return typeof value === 'object' && value !== null && 'measure' in value;
+  return typeof value === 'object' && value !== null && 'measure' in value && typeof value.measure === 'function';
 }
 
 export function getWebWindow(): WindowLike | null {

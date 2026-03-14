@@ -49,15 +49,27 @@ export function hasAvailableCapacityForDroppable(
   droppedItems: DroppedItemsMap,
   droppableId: string,
 ): boolean {
-  const droppableSlot = Object.values(slots).find((slot) => slot.id === droppableId);
+  let droppableSlot: DropSlotLike | null = null;
+  for (const key in slots) {
+    const slot = slots[Number(key)];
+    if (slot?.id === droppableId) {
+      droppableSlot = slot;
+      break;
+    }
+  }
+
   if (!droppableSlot) {
     return false;
   }
 
   const capacity = droppableSlot.capacity !== undefined ? droppableSlot.capacity : 1;
-  const droppedCount = Object.values(droppedItems).filter(
-    (item) => item.droppableId === droppableId,
-  ).length;
+  let droppedCount = 0;
+  for (const item of Object.values(droppedItems)) {
+    if (item.droppableId === droppableId) {
+      droppedCount += 1;
+    }
+  }
+
   return droppedCount < capacity;
 }
 

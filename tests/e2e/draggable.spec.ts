@@ -49,6 +49,46 @@ async function dragViaAndDrop(
   await page.mouse.up();
 }
 
+async function getRoundedTopLeft(
+  page: Page,
+  testId: string,
+): Promise<{ x: number; y: number } | null> {
+  const box = await page.locator(`[data-testid="${testId}"]`).boundingBox();
+  if (!box) {
+    return null;
+  }
+
+  return {
+    x: Math.round(box.x),
+    y: Math.round(box.y),
+  };
+}
+
+async function waitForTopLeft(
+  page: Page,
+  testId: string,
+  expected: { x: number; y: number },
+): Promise<void> {
+  await expect.poll(() => getRoundedTopLeft(page, testId)).toEqual(expected);
+}
+
+async function waitForDroppedSnapshot(page: Page, expected: unknown): Promise<void> {
+  await expect
+    .poll(() => page.evaluate(() => (window.__droppedItemsSnapshots ?? []).at(-1) ?? null))
+    .toEqual(expected);
+}
+
+async function waitForLastDropEvent(page: Page, expected: unknown): Promise<void> {
+  await expect
+    .poll(() =>
+      page.evaluate(() => {
+        const dropEvents = (window.__draggableEvents ?? []).filter((event) => event.type === 'drop');
+        return dropEvents.at(-1) ?? null;
+      }),
+    )
+    .toEqual(expected);
+}
+
 test.describe('draggable web compatibility', () => {
   test('basic demo resets misses, constrains axis movement, and honors dragDisabled', async ({ page }) => {
     const errors: string[] = [];
@@ -65,16 +105,25 @@ test.describe('draggable web compatibility', () => {
     if (!freeBefore) {
       throw new Error('Missing free draggable');
     }
+    const freeStart = {
+      x: Math.round(freeBefore.x),
+      y: Math.round(freeBefore.y),
+    };
 
     await dragBy(page, 'free-draggable', 180, 110);
-    await page.waitForTimeout(80);
-
-    const freeAfter = await page.locator('[data-testid="free-draggable"]').boundingBox();
-    expect(freeAfter?.x).toBeCloseTo(freeBefore.x, 1);
-    expect(freeAfter?.y).toBeCloseTo(freeBefore.y, 1);
+    await waitForTopLeft(page, 'free-draggable', freeStart);
 
     await dragBy(page, 'axis-draggable', 220, 90);
-    await page.waitForTimeout(80);
+    await expect
+      .poll(() =>
+        page.evaluate(
+          () =>
+            (window.__draggableEvents ?? []).filter(
+              (event) => event.type === 'dragging' && event.draggableId === 'axis-item',
+            ).length,
+        ),
+      )
+      .toBeGreaterThan(0);
 
     const axisEvents = await page.evaluate(() =>
       (window.__draggableEvents ?? []).filter(
@@ -91,13 +140,13 @@ test.describe('draggable web compatibility', () => {
     if (!disabledBefore) {
       throw new Error('Missing disabled draggable');
     }
+    const disabledStart = {
+      x: Math.round(disabledBefore.x),
+      y: Math.round(disabledBefore.y),
+    };
 
     await dragBy(page, 'disabled-draggable', 140, 20);
-    await page.waitForTimeout(80);
-
-    const disabledAfter = await page.locator('[data-testid="disabled-draggable"]').boundingBox();
-    expect(disabledAfter?.x).toBeCloseTo(disabledBefore.x, 1);
-    expect(disabledAfter?.y).toBeCloseTo(disabledBefore.y, 1);
+    await waitForTopLeft(page, 'disabled-draggable', disabledStart);
 
     const events = await page.evaluate(() => window.__draggableEvents ?? []);
     expect(events.some((event: { draggableId: string }) => event.draggableId === 'disabled-item')).toBe(
@@ -122,32 +171,25 @@ test.describe('draggable web compatibility', () => {
     if (!handleCardBefore) {
       throw new Error('Missing handle-only draggable');
     }
+    const handleStart = {
+      x: Math.round(handleCardBefore.x),
+      y: Math.round(handleCardBefore.y),
+    };
 
     await dragBy(page, 'handle-draggable-body', -40, -140);
-    await page.waitForTimeout(80);
-
-    const handleCardAfterBody = await page.locator('[data-testid="handle-draggable"]').boundingBox();
-    expect(handleCardAfterBody?.x).toBeCloseTo(handleCardBefore.x, 1);
-    expect(handleCardAfterBody?.y).toBeCloseTo(handleCardBefore.y, 1);
+    await waitForTopLeft(page, 'handle-draggable', handleStart);
 
     await dragToTarget(page, 'handle-draggable-handle', 'droppable-zone-a');
-    await page.waitForTimeout(80);
+    await expect(page.locator('[data-testid="zone-a-active"]')).toHaveText('false');
 
-    const zoneAActive = await page.locator('[data-testid="zone-a-active"]').innerText();
-    expect(zoneAActive).toBe('false');
-
-    let snapshots = await page.evaluate(() => window.__droppedItemsSnapshots ?? []);
-    expect(snapshots.at(-1)).toEqual({
+    await waitForDroppedSnapshot(page, {
       'handle-item': {
         droppableId: 'zone-a',
         data: { id: 'handle-item', label: 'Handle Item' },
       },
     });
 
-    const dropEvents = await page.evaluate(() =>
-      (window.__draggableEvents ?? []).filter((event) => event.type === 'drop'),
-    );
-    expect(dropEvents.at(-1)).toEqual({
+    await waitForLastDropEvent(page, {
       type: 'drop',
       demo: 'dropzones',
       draggableId: 'handle-item',
@@ -155,23 +197,17 @@ test.describe('draggable web compatibility', () => {
     });
 
     await dragViaAndDrop(page, 'handle-draggable-handle', 140, 120, 'droppable-zone-a');
-    await page.waitForTimeout(80);
-
-    snapshots = await page.evaluate(() => window.__droppedItemsSnapshots ?? []);
-    const latestSnapshot = snapshots.at(-1);
-    expect(Object.keys(latestSnapshot ?? {})).toEqual(['handle-item']);
-    expect(latestSnapshot).toEqual({
+    await waitForDroppedSnapshot(page, {
       'handle-item': {
         droppableId: 'zone-a',
         data: { id: 'handle-item', label: 'Handle Item' },
       },
     });
+    const latestSnapshot = await page.evaluate(() => (window.__droppedItemsSnapshots ?? []).at(-1) ?? {});
+    expect(Object.keys(latestSnapshot ?? {})).toEqual(['handle-item']);
 
     await dragToTarget(page, 'disabled-target-draggable', 'droppable-zone-disabled');
-    await page.waitForTimeout(80);
-
-    const disabledZoneActive = await page.locator('[data-testid="zone-disabled-active"]').innerText();
-    expect(disabledZoneActive).toBe('false');
+    await expect(page.locator('[data-testid="zone-disabled-active"]')).toHaveText('false');
     const disabledEvents = await page.evaluate(() =>
       (window.__draggableEvents ?? []).filter(
         (event) => event.type === 'drop' && event.draggableId === 'disabled-check',

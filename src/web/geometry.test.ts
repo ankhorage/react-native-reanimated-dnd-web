@@ -60,7 +60,7 @@ describe('geometry helpers', () => {
       slots,
       { x: 20, y: 20, width: 40, height: 40 },
       'intersect',
-      () => true,
+      (slot) => slot.id === 'zone-a',
     );
 
     expect(match).toEqual({

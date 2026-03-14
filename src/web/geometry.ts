@@ -113,7 +113,7 @@ export function findMatchingSlot(
   slots: Record<number, DropSlotLike>,
   draggableRect: LayoutRect,
   collisionAlgorithm: CollisionAlgorithm,
-  hasAvailableCapacity: (droppableId: string) => boolean,
+  canAcceptDrop: (slot: DropSlotLike) => boolean,
 ): { slotId: number; slot: DropSlotLike } | null {
   for (const key in slots) {
     const slotId = Number.parseInt(key, 10);
@@ -123,7 +123,7 @@ export function findMatchingSlot(
       continue;
     }
 
-    if (hasCollision(draggableRect, slot, collisionAlgorithm) && hasAvailableCapacity(slot.id)) {
+    if (hasCollision(draggableRect, slot, collisionAlgorithm) && canAcceptDrop(slot)) {
       return { slotId, slot };
     }
   }
