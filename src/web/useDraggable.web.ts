@@ -4,6 +4,7 @@ import React, {
   useCallback,
   useContext,
   useEffect,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -398,7 +399,7 @@ export function useDraggableInternal<TData = unknown>(
     }
   }, [cancelActiveInteraction, dragDisabled, state]);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!children || !handleComponent) {
       setHasHandle(false);
       return;
