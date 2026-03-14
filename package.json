@@ -1,6 +1,6 @@
 {
   "name": "@ankhorage/react-native-reanimated-dnd-web",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "license": "MIT",
   "private": false,
   "keywords": [
@@ -11,7 +11,7 @@
     "react-native-web",
     "reanimated"
   ],
-  "description": "Web adapter for react-native-reanimated-dnd with upstream passthrough and sortable web compatibility.",
+  "description": "Web adapter for react-native-reanimated-dnd with upstream passthrough and parity-compatible web drag/drop and sortable support.",
   "type": "module",
   "main": "dist/index.web.js",
   "react-native": "dist/index.native.js",
