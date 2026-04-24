@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.3.1
+
+- Refresh the published README with a concise overview, installation, usage, and cross-platform use cases.
+
 ## 0.3.0
 
 - Added web compatibility implementations for `DropProvider`, `Droppable`, and `Draggable` with upstream-compatible `onDrop(data)` and `getDroppedItems()` semantics.
