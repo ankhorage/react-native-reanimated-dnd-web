@@ -143,19 +143,18 @@ export function resolveAlignedDropPosition(
 
   switch (alignment) {
     case 'top-left':
-      x = slot.x;
-      y = slot.y;
+      ({ x, y } = slot);
       break;
     case 'top-center':
       x = slot.x + slot.width / 2 - draggableRect.width / 2;
-      y = slot.y;
+      ({ y } = slot);
       break;
     case 'top-right':
       x = slot.x + slot.width - draggableRect.width;
-      y = slot.y;
+      ({ y } = slot);
       break;
     case 'center-left':
-      x = slot.x;
+      ({ x } = slot);
       y = slot.y + slot.height / 2 - draggableRect.height / 2;
       break;
     case 'center':
@@ -165,7 +164,7 @@ export function resolveAlignedDropPosition(
       y = slot.y + slot.height / 2 - draggableRect.height / 2;
       break;
     case 'bottom-left':
-      x = slot.x;
+      ({ x } = slot);
       y = slot.y + slot.height - draggableRect.height;
       break;
     case 'bottom-center':
