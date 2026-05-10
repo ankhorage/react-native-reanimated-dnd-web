@@ -59,21 +59,24 @@ function isMeasurableLike(value: unknown): value is MeasurableLike {
   );
 }
 
+function isWindowLike(value: unknown): value is WindowLike {
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    'addEventListener' in value &&
+    typeof value.addEventListener === 'function' &&
+    'removeEventListener' in value &&
+    typeof value.removeEventListener === 'function'
+  );
+}
+
 export function getWebWindow(): WindowLike | null {
-  const webWindow = globalThis as Partial<WindowLike>;
-  if (
-    typeof webWindow.addEventListener !== 'function' ||
-    typeof webWindow.removeEventListener !== 'function'
-  ) {
+  const webWindow: unknown = globalThis;
+  if (!isWindowLike(webWindow)) {
     return null;
   }
 
-  return {
-    scrollX: webWindow.scrollX,
-    scrollY: webWindow.scrollY,
-    addEventListener: webWindow.addEventListener,
-    removeEventListener: webWindow.removeEventListener,
-  };
+  return webWindow;
 }
 
 export function measureNode(node: unknown): LayoutRect | null {
