@@ -1,5 +1,6 @@
 import React, { useMemo, useRef, useState } from 'react';
 import { Text, View } from 'react-native';
+
 import { Draggable, Droppable, DropProvider } from '../../src/sortableCompat.web';
 
 type DraggableDemo = 'basic' | 'dropzones';
@@ -62,8 +63,12 @@ function BasicDemo(): React.JSX.Element {
           <Draggable
             draggableId="free-item"
             data={{ id: 'free-item', label: 'Free' }}
-            onDragStart={() => pushEvent({ type: 'drag-start', demo: 'basic', draggableId: 'free-item' })}
-            onDragEnd={() => pushEvent({ type: 'drag-end', demo: 'basic', draggableId: 'free-item' })}
+            onDragStart={() =>
+              pushEvent({ type: 'drag-start', demo: 'basic', draggableId: 'free-item' })
+            }
+            onDragEnd={() =>
+              pushEvent({ type: 'drag-end', demo: 'basic', draggableId: 'free-item' })
+            }
             onStateChange={(state) =>
               pushEvent({ type: 'state', demo: 'basic', draggableId: 'free-item', state })
             }
@@ -124,9 +129,7 @@ function DropzonesDemo(): React.JSX.Element {
   const [zoneDisabledActive, setZoneDisabledActive] = useState(false);
 
   return (
-    <DropProvider
-      onDroppedItemsUpdate={(droppedItems) => pushDroppedItemsSnapshot(droppedItems)}
-    >
+    <DropProvider onDroppedItemsUpdate={(droppedItems) => pushDroppedItemsSnapshot(droppedItems)}>
       <View testID="demo-draggable-dropzones" style={styles.page}>
         <Text style={styles.title}>Draggable Dropzones Harness</Text>
 
@@ -138,7 +141,12 @@ function DropzonesDemo(): React.JSX.Element {
               capacity={2}
               style={[styles.dropZone, styles.dropZoneA]}
               onDrop={() =>
-                pushEvent({ type: 'drop', demo: 'dropzones', draggableId: 'handle-item', droppableId: 'zone-a' })
+                pushEvent({
+                  type: 'drop',
+                  demo: 'dropzones',
+                  draggableId: 'handle-item',
+                  droppableId: 'zone-a',
+                })
               }
               onActiveChange={(isActive) => {
                 setZoneAActive(isActive);
@@ -159,7 +167,12 @@ function DropzonesDemo(): React.JSX.Element {
               capacity={2}
               style={[styles.dropZone, styles.dropZoneB]}
               onDrop={() =>
-                pushEvent({ type: 'drop', demo: 'dropzones', draggableId: 'handle-item', droppableId: 'zone-b' })
+                pushEvent({
+                  type: 'drop',
+                  demo: 'dropzones',
+                  draggableId: 'handle-item',
+                  droppableId: 'zone-b',
+                })
               }
             >
               <View testID="droppable-zone-b" style={styles.dropZoneContent}>
@@ -181,7 +194,12 @@ function DropzonesDemo(): React.JSX.Element {
               }
               onActiveChange={(isActive) => {
                 setZoneDisabledActive(isActive);
-                pushEvent({ type: 'active', demo: 'dropzones', droppableId: 'zone-disabled', isActive });
+                pushEvent({
+                  type: 'active',
+                  demo: 'dropzones',
+                  droppableId: 'zone-disabled',
+                  isActive,
+                });
               }}
             >
               <View testID="droppable-zone-disabled" style={styles.dropZoneContent}>
