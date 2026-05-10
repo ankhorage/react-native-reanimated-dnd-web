@@ -1,5 +1,6 @@
 import React, {
   type ComponentType,
+  type ReactElement,
   type ReactNode,
   useCallback,
   useContext,
@@ -54,12 +55,15 @@ type InternalUseDraggableReturn = UseDraggableReturn & {
 };
 
 const DRAG_THRESHOLD = 6;
+const DRAGGABLE_STATE_IDLE: DraggableStateType = 'IDLE';
+const DRAGGABLE_STATE_DRAGGING: DraggableStateType = 'DRAGGING';
+const DRAGGABLE_STATE_DROPPED: DraggableStateType = 'DROPPED';
 
 export const DraggableState = {
-  IDLE: 'IDLE',
-  DRAGGING: 'DRAGGING',
-  DROPPED: 'DROPPED',
-} as const satisfies Record<string, DraggableStateType>;
+  IDLE: DRAGGABLE_STATE_IDLE,
+  DRAGGING: DRAGGABLE_STATE_DRAGGING,
+  DROPPED: DRAGGABLE_STATE_DROPPED,
+} as const;
 
 let hasWarnedAboutAnimationFunction = false;
 
@@ -89,7 +93,8 @@ export function hasHandleComponent(
       return true;
     }
 
-    return hasHandleComponent(child.props.children, handleComponent);
+    const element = child as ReactElement<{ children?: ReactNode }>;
+    return hasHandleComponent(element.props.children, handleComponent);
   });
 }
 
@@ -196,13 +201,13 @@ export function useDraggableInternal<TData = unknown>(
 
     const currentMove = listenersRef.current.move;
     if (currentMove) {
-      webWindow.removeEventListener?.('pointermove', currentMove);
+      webWindow.removeEventListener('pointermove', currentMove);
     }
 
     const currentUp = listenersRef.current.up;
     if (currentUp) {
-      webWindow.removeEventListener?.('pointerup', currentUp);
-      webWindow.removeEventListener?.('pointercancel', currentUp);
+      webWindow.removeEventListener('pointerup', currentUp);
+      webWindow.removeEventListener('pointercancel', currentUp);
     }
 
     listenersRef.current = {
@@ -549,9 +554,9 @@ export function useDraggableInternal<TData = unknown>(
         move: handleMove,
         up: handleUp,
       };
-      webWindow.addEventListener?.('pointermove', handleMove);
-      webWindow.addEventListener?.('pointerup', handleUp);
-      webWindow.addEventListener?.('pointercancel', handleUp);
+      webWindow.addEventListener('pointermove', handleMove);
+      webWindow.addEventListener('pointerup', handleUp);
+      webWindow.addEventListener('pointercancel', handleUp);
     },
     [
       clearListeners,
