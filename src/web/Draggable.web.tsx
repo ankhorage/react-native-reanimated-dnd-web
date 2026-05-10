@@ -13,16 +13,18 @@ import type { DraggableProps } from 'react-native-reanimated-dnd';
 
 import { useDraggableInternal } from './useDraggable.web';
 
+interface DraggablePointerEventLike {
+  nativeEvent?: {
+    pointerId?: number;
+    pageX?: number;
+    pageY?: number;
+    button?: number;
+  };
+  preventDefault?: () => void;
+}
+
 interface DraggableContextValue {
-  beginTracking: (event: {
-    nativeEvent?: {
-      pointerId?: number;
-      pageX?: number;
-      pageY?: number;
-      button?: number;
-    };
-    preventDefault?: () => void;
-  }) => void;
+  beginTracking: (event: DraggablePointerEventLike) => void;
 }
 
 interface DraggableHandleProps {
@@ -49,7 +51,7 @@ function DraggableHandle({ children, style }: DraggableHandleProps): React.JSX.E
   const draggableContext = useContext(DraggableContext);
 
   const handlePointerDown = useCallback(
-    (event: Parameters<NonNullable<DraggableContextValue['beginTracking']>>[0]) => {
+    (event: DraggablePointerEventLike) => {
       draggableContext?.beginTracking(event);
     },
     [draggableContext],
@@ -81,7 +83,7 @@ function DraggableComponent<TData = unknown>(
     [animatedViewRef, ref],
   );
 
-  const contextValue = useMemo<DraggableContextValue>(
+  const contextValue = useMemo(
     () => ({
       beginTracking,
     }),
