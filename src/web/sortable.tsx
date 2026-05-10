@@ -121,19 +121,24 @@ function isHorizontalDirection(direction: SortableDirectionType): boolean {
   return String(direction) === HORIZONTAL_DIRECTION_VALUE;
 }
 
+function isWebWindowLike(value: unknown): value is WebWindowLike {
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    'addEventListener' in value &&
+    typeof value.addEventListener === 'function' &&
+    'removeEventListener' in value &&
+    typeof value.removeEventListener === 'function'
+  );
+}
+
 function getWebWindow(): WebWindowLike | null {
-  const maybeWindow = globalThis as Partial<WebWindowLike>;
-  if (
-    typeof maybeWindow.addEventListener !== 'function' ||
-    typeof maybeWindow.removeEventListener !== 'function'
-  ) {
+  const webWindow: unknown = globalThis;
+  if (!isWebWindowLike(webWindow)) {
     return null;
   }
 
-  return {
-    addEventListener: maybeWindow.addEventListener,
-    removeEventListener: maybeWindow.removeEventListener,
-  };
+  return webWindow;
 }
 
 function toPositionMap(candidate: unknown): PositionMap {
