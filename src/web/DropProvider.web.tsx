@@ -63,7 +63,7 @@ export function hasAvailableCapacityForDroppable(
     return false;
   }
 
-  const capacity = droppableSlot.capacity !== undefined ? droppableSlot.capacity : 1;
+  const capacity = droppableSlot.capacity ?? 1;
   let droppedCount = 0;
   for (const item of Object.values(droppedItems)) {
     if (item.droppableId === droppableId) {
@@ -172,7 +172,7 @@ export const DropProvider = forwardRef<DropProviderRef, DropProviderProps>(funct
     [getDroppedItems, requestPositionUpdate],
   );
 
-  const contextValue = useMemo<SlotsContextValue>(
+  const contextValue = useMemo(
     () => ({
       register,
       unregister,
