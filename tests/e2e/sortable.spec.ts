@@ -24,7 +24,12 @@ async function dragBy(page: Page, testId: string, deltaX: number, deltaY: number
   await page.mouse.up();
 }
 
-async function dragOutsideAndBack(page: Page, testId: string, deltaX: number, deltaY: number): Promise<void> {
+async function dragOutsideAndBack(
+  page: Page,
+  testId: string,
+  deltaX: number,
+  deltaY: number,
+): Promise<void> {
   const locator = page.locator(`[data-testid="${testId}"]`);
   const box = await locator.boundingBox();
   if (!box) {
@@ -98,7 +103,9 @@ test.describe('sortable web reliability', () => {
     expect(errors).toEqual([]);
   });
 
-  test('horizontal reorder works and remains stable after pointer exits container', async ({ page }) => {
+  test('horizontal reorder works and remains stable after pointer exits container', async ({
+    page,
+  }) => {
     const errors: string[] = [];
     page.on('console', (message) => {
       if (message.type() === 'error' || message.type() === 'warning') {

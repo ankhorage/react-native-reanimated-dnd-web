@@ -17,18 +17,18 @@ This matrix defines web support status for `@ankhorage/react-native-reanimated-d
 
 ## Current Matrix
 
-| Symbol | Status | Evidence |
-| --- | --- | --- |
-| `Sortable` | Supported | `tests/e2e/sortable.spec.ts` (vertical + horizontal) |
-| `SortableItem` | Supported | `tests/e2e/sortable.spec.ts` (including `SortableItem.Handle`) |
-| `useSortableList` | Experimental | Runtime parity + unit export checks; no direct Playwright hook-level contract yet |
-| `useSortable` | Experimental | Runtime parity + unit export checks; no direct Playwright hook-level contract yet |
-| `DropProvider` | Supported | `tests/e2e/draggable.spec.ts` (`/demos/draggable-basic`, `/demos/draggable-dropzones`) |
-| `Draggable` | Supported | `tests/e2e/draggable.spec.ts` (free drag, handle-only drag, repeat drop overwrite, disabled drag) |
-| `Droppable` | Supported | `tests/e2e/draggable.spec.ts` (eligible targets, overlapping targets, disabled targets) |
-| `useDraggable` | Experimental | Web compatibility implementation; no dedicated hook-level web reliability suite yet |
-| `useDroppable` | Experimental | Web compatibility implementation; no dedicated hook-level web reliability suite yet |
-| `clamp`, `listToObject`, `objectMove`, `setPosition`, `setAutoScroll` | Experimental | Web compatibility utility implementation; no dedicated utility contract tests yet |
+| Symbol                                                                | Status       | Evidence                                                                                          |
+| --------------------------------------------------------------------- | ------------ | ------------------------------------------------------------------------------------------------- |
+| `Sortable`                                                            | Supported    | `tests/e2e/sortable.spec.ts` (vertical + horizontal)                                              |
+| `SortableItem`                                                        | Supported    | `tests/e2e/sortable.spec.ts` (including `SortableItem.Handle`)                                    |
+| `useSortableList`                                                     | Experimental | Runtime parity + unit export checks; no direct Playwright hook-level contract yet                 |
+| `useSortable`                                                         | Experimental | Runtime parity + unit export checks; no direct Playwright hook-level contract yet                 |
+| `DropProvider`                                                        | Supported    | `tests/e2e/draggable.spec.ts` (`/demos/draggable-basic`, `/demos/draggable-dropzones`)            |
+| `Draggable`                                                           | Supported    | `tests/e2e/draggable.spec.ts` (free drag, handle-only drag, repeat drop overwrite, disabled drag) |
+| `Droppable`                                                           | Supported    | `tests/e2e/draggable.spec.ts` (eligible targets, overlapping targets, disabled targets)           |
+| `useDraggable`                                                        | Experimental | Web compatibility implementation; no dedicated hook-level web reliability suite yet               |
+| `useDroppable`                                                        | Experimental | Web compatibility implementation; no dedicated hook-level web reliability suite yet               |
+| `clamp`, `listToObject`, `objectMove`, `setPosition`, `setAutoScroll` | Experimental | Web compatibility utility implementation; no dedicated utility contract tests yet                 |
 
 ## Upstream Parity Notes
 

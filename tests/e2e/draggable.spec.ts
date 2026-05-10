@@ -82,7 +82,9 @@ async function waitForLastDropEvent(page: Page, expected: unknown): Promise<void
   await expect
     .poll(() =>
       page.evaluate(() => {
-        const dropEvents = (window.__draggableEvents ?? []).filter((event) => event.type === 'drop');
+        const dropEvents = (window.__draggableEvents ?? []).filter(
+          (event) => event.type === 'drop',
+        );
         return dropEvents.at(-1) ?? null;
       }),
     )
@@ -90,7 +92,9 @@ async function waitForLastDropEvent(page: Page, expected: unknown): Promise<void
 }
 
 test.describe('draggable web compatibility', () => {
-  test('basic demo resets misses, constrains axis movement, and honors dragDisabled', async ({ page }) => {
+  test('basic demo resets misses, constrains axis movement, and honors dragDisabled', async ({
+    page,
+  }) => {
     const errors: string[] = [];
     page.on('console', (message) => {
       if (message.type() === 'error') {
@@ -149,14 +153,16 @@ test.describe('draggable web compatibility', () => {
     await waitForTopLeft(page, 'disabled-draggable', disabledStart);
 
     const events = await page.evaluate(() => window.__draggableEvents ?? []);
-    expect(events.some((event: { draggableId: string }) => event.draggableId === 'disabled-item')).toBe(
-      false,
-    );
+    expect(
+      events.some((event: { draggableId: string }) => event.draggableId === 'disabled-item'),
+    ).toBe(false);
 
     expect(errors).toEqual([]);
   });
 
-  test('dropzones demo enforces handle-only drag and resolves drops deterministically', async ({ page }) => {
+  test('dropzones demo enforces handle-only drag and resolves drops deterministically', async ({
+    page,
+  }) => {
     const warnings: string[] = [];
     page.on('console', (message) => {
       if (message.type() === 'error' || message.type() === 'warning') {
@@ -203,7 +209,9 @@ test.describe('draggable web compatibility', () => {
         data: { id: 'handle-item', label: 'Handle Item' },
       },
     });
-    const latestSnapshot = await page.evaluate(() => (window.__droppedItemsSnapshots ?? []).at(-1) ?? {});
+    const latestSnapshot = await page.evaluate(
+      () => (window.__droppedItemsSnapshots ?? []).at(-1) ?? {},
+    );
     expect(Object.keys(latestSnapshot ?? {})).toEqual(['handle-item']);
 
     await dragToTarget(page, 'disabled-target-draggable', 'droppable-zone-disabled');

@@ -22,9 +22,7 @@ type RuntimeKeysResult = {
 function normalizeKeys(keys: Iterable<string>): string[] {
   const ignored = new Set(exportParityConfig.ignoredKeys);
 
-  return [...new Set(keys)]
-    .filter((key) => !ignored.has(key))
-    .sort((a, b) => a.localeCompare(b));
+  return [...new Set(keys)].filter((key) => !ignored.has(key)).sort((a, b) => a.localeCompare(b));
 }
 
 function setDiff(left: string[], right: string[]): string[] {
@@ -124,7 +122,10 @@ async function loadStaticEsbuildExports(entryFile: string): Promise<string[]> {
   return output.exports;
 }
 
-async function collectRuntimeKeys(specifier: string, fallbackEntry: string): Promise<RuntimeKeysResult> {
+async function collectRuntimeKeys(
+  specifier: string,
+  fallbackEntry: string,
+): Promise<RuntimeKeysResult> {
   const importResult = await loadImportKeys(specifier);
   const requireResult = loadRequireKeys(specifier);
 
@@ -184,7 +185,9 @@ async function main(): Promise<void> {
   const allowlistedOmissions = normalizeKeys(exportParityConfig.omittedWebExports);
 
   const allowlistedExtrasUsed = extraOnWeb.filter((item) => allowlistedExtras.includes(item));
-  const allowlistedOmissionsUsed = missingFromWeb.filter((item) => allowlistedOmissions.includes(item));
+  const allowlistedOmissionsUsed = missingFromWeb.filter((item) =>
+    allowlistedOmissions.includes(item),
+  );
 
   const unapprovedExtraOnWeb = extraOnWeb.filter((item) => !allowlistedExtras.includes(item));
   const unapprovedMissingFromWeb = missingFromWeb.filter(
