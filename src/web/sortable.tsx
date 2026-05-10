@@ -10,7 +10,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { StyleSheet, View, type ViewStyle } from 'react-native';
+import { View, type ViewStyle } from 'react-native';
 import {
   type HorizontalScrollDirection as HorizontalScrollDirectionType,
   type ScrollDirection as ScrollDirectionType,
@@ -84,11 +84,16 @@ interface SortableItemDragApi {
   beginTracking: (event: PointerDownEventLike) => void;
 }
 
+interface WebOnlyViewStyle extends ViewStyle {
+  userSelect?: 'none';
+}
+
 const DRAG_THRESHOLD = 6;
-const DIRECTION_VERTICAL = 'vertical' satisfies SortableDirectionType;
-const DIRECTION_HORIZONTAL = 'horizontal' satisfies SortableDirectionType;
-const SCROLL_NONE = 'none' satisfies ScrollDirectionType;
-const HORIZONTAL_SCROLL_NONE = 'none' satisfies HorizontalScrollDirectionType;
+const DIRECTION_VERTICAL = 'vertical' as SortableDirectionType;
+const DIRECTION_HORIZONTAL = 'horizontal' as SortableDirectionType;
+const SCROLL_NONE = 'none' as ScrollDirectionType;
+const HORIZONTAL_SCROLL_NONE = 'none' as HorizontalScrollDirectionType;
+const HORIZONTAL_DIRECTION_VALUE = 'horizontal';
 
 export const ScrollDirection = {
   None: 'none',
@@ -111,6 +116,10 @@ const SortableItemDragContextValue = createContext<SortableItemDragApi | null>(n
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+function isHorizontalDirection(direction: SortableDirectionType): boolean {
+  return String(direction) === HORIZONTAL_DIRECTION_VALUE;
 }
 
 function getWebWindow(): WebWindowLike | null {
@@ -336,9 +345,9 @@ function SortableItemBase<T>({
   const pendingContextRef = useRef<SortableItemPendingContext | null>(null);
   const listenersRef = useRef<PointerListeners>({ move: null, up: null });
 
-  const isHorizontal = direction === DIRECTION_HORIZONTAL;
+  const isHorizontal = isHorizontalDirection(direction);
   const itemExtent = isHorizontal ? itemWidth : itemHeight;
-  const itemStep = (itemExtent ?? 0) + gap;
+  const itemStep = itemExtent + gap;
   const hasHandle = useMemo(() => childHasHandle(children), [children]);
 
   const clearListeners = useCallback(() => {
@@ -566,7 +575,7 @@ function SortableImpl<TData>({
   contentContainerStyle,
   itemKeyExtractor,
 }: SortableProps<TData>): React.JSX.Element {
-  const isHorizontal = direction === DIRECTION_HORIZONTAL;
+  const isHorizontal = isHorizontalDirection(direction);
   const isVertical = !isHorizontal;
 
   if (isVertical && (!itemHeight || itemHeight <= 0)) {
@@ -739,13 +748,13 @@ export function useSortableList<TData extends { id: string }>(
   };
 }
 
-const webStyles = StyleSheet.create({
+const webStyles = {
   dragging: {
     opacity: 0.7,
-    userSelect: 'none' as ViewStyle['userSelect'],
+    userSelect: 'none',
   },
   horizontalContent: {
     flexDirection: 'row',
     alignItems: 'stretch',
   },
-});
+} satisfies Record<string, WebOnlyViewStyle>;
