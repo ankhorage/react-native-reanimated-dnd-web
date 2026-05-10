@@ -10,7 +10,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { View, type ViewStyle } from 'react-native';
+import { StyleSheet, View, type ViewStyle } from 'react-native';
 import {
   type HorizontalScrollDirection as HorizontalScrollDirectionType,
   type ScrollDirection as ScrollDirectionType,
@@ -747,13 +747,17 @@ export function useSortableList<TData extends { id: string }>(
   };
 }
 
-const webStyles = {
-  dragging: {
-    opacity: 0.7,
-    userSelect: 'none',
-  },
-  horizontalContent: {
-    flexDirection: 'row',
-    alignItems: 'stretch',
-  },
-} satisfies Record<string, WebOnlyViewStyle>;
+const draggingStyle = {
+  opacity: 0.7,
+  userSelect: 'none',
+} satisfies WebOnlyViewStyle;
+
+const horizontalContentStyle = {
+  flexDirection: 'row',
+  alignItems: 'stretch',
+} satisfies WebOnlyViewStyle;
+
+const webStyles = StyleSheet.create({
+  dragging: draggingStyle,
+  horizontalContent: horizontalContentStyle,
+});
