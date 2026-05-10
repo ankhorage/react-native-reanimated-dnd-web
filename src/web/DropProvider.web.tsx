@@ -9,11 +9,12 @@ import React, {
   useState,
 } from 'react';
 import type {
+  DroppedItemsMap,
   DropProviderProps,
   DropProviderRef,
-  DroppedItemsMap,
   SlotsContextValue,
 } from 'react-native-reanimated-dnd';
+
 import type { DropSlotLike } from './geometry';
 
 export function applyDroppedItem<TData = unknown>(
@@ -62,7 +63,7 @@ export function hasAvailableCapacityForDroppable(
     return false;
   }
 
-  const capacity = droppableSlot.capacity !== undefined ? droppableSlot.capacity : 1;
+  const capacity = droppableSlot.capacity ?? 1;
   let droppedCount = 0;
   for (const item of Object.values(droppedItems)) {
     if (item.droppableId === droppableId) {
@@ -73,7 +74,7 @@ export function hasAvailableCapacityForDroppable(
   return droppedCount < capacity;
 }
 
-const slotsContextFallback: SlotsContextValue<unknown> = {
+const slotsContextFallback: SlotsContextValue = {
   register: (_id, _slot) => undefined,
   unregister: (_id) => undefined,
   getSlots: () => ({}),
@@ -171,7 +172,7 @@ export const DropProvider = forwardRef<DropProviderRef, DropProviderProps>(funct
     [getDroppedItems, requestPositionUpdate],
   );
 
-  const contextValue = useMemo<SlotsContextValue<unknown>>(
+  const contextValue = useMemo(
     () => ({
       register,
       unregister,

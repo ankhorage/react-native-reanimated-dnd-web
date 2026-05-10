@@ -1,5 +1,6 @@
 import React, {
   type ComponentType,
+  type ReactElement,
   type ReactNode,
   useCallback,
   useContext,
@@ -15,37 +16,38 @@ import type {
   UseDraggableOptions,
   UseDraggableReturn,
 } from 'react-native-reanimated-dnd';
-import { SlotsContext } from './DropProvider.web';
+
 import { getWebWindow, measureRef } from './domMeasurement';
+import { SlotsContext } from './DropProvider.web';
 import {
   applyAxisToTranslation,
   clampTranslationToBounds,
+  type DropSlotLike,
   findMatchingSlot,
   getTranslatedRect,
-  resolveAlignedDropPosition,
-  type DropSlotLike,
   type LayoutRect,
+  resolveAlignedDropPosition,
   type Translation,
 } from './geometry';
 
-export type PointerLikeNativeEvent = {
+export interface PointerLikeNativeEvent {
   pointerId?: number;
   pageX?: number;
   pageY?: number;
   button?: number;
-};
+}
 
-export type PointerDownEventLike = {
+export interface PointerDownEventLike {
   nativeEvent?: PointerLikeNativeEvent;
   preventDefault?: () => void;
-};
+}
 
-type DragSession = {
+interface DragSession {
   pointerId: number;
   startPageX: number;
   startPageY: number;
   startTranslation: Translation;
-};
+}
 
 type InternalUseDraggableReturn = UseDraggableReturn & {
   beginTracking: (event: PointerDownEventLike) => void;
@@ -53,12 +55,15 @@ type InternalUseDraggableReturn = UseDraggableReturn & {
 };
 
 const DRAG_THRESHOLD = 6;
+const DRAGGABLE_STATE_IDLE: DraggableStateType = 'IDLE';
+const DRAGGABLE_STATE_DRAGGING: DraggableStateType = 'DRAGGING';
+const DRAGGABLE_STATE_DROPPED: DraggableStateType = 'DROPPED';
 
 export const DraggableState = {
-  IDLE: 'IDLE',
-  DRAGGING: 'DRAGGING',
-  DROPPED: 'DROPPED',
-} as const satisfies Record<string, DraggableStateType>;
+  IDLE: DRAGGABLE_STATE_IDLE,
+  DRAGGING: DRAGGABLE_STATE_DRAGGING,
+  DROPPED: DRAGGABLE_STATE_DROPPED,
+} as const;
 
 let hasWarnedAboutAnimationFunction = false;
 
@@ -88,7 +93,8 @@ export function hasHandleComponent(
       return true;
     }
 
-    return hasHandleComponent(child.props.children, handleComponent);
+    const element = child as ReactElement<{ children?: ReactNode }>;
+    return hasHandleComponent(element.props.children, handleComponent);
   });
 }
 
@@ -178,7 +184,7 @@ export function useDraggableInternal<TData = unknown>(
   } = useContext(SlotsContext);
 
   const setTranslation = useCallback((next: Translation) => {
-    const current = translationRef.current;
+    const { current } = translationRef;
     if (current.x === next.x && current.y === next.y) {
       return;
     }
@@ -195,13 +201,13 @@ export function useDraggableInternal<TData = unknown>(
 
     const currentMove = listenersRef.current.move;
     if (currentMove) {
-      webWindow.removeEventListener?.('pointermove', currentMove);
+      webWindow.removeEventListener('pointermove', currentMove);
     }
 
     const currentUp = listenersRef.current.up;
     if (currentUp) {
-      webWindow.removeEventListener?.('pointerup', currentUp);
-      webWindow.removeEventListener?.('pointercancel', currentUp);
+      webWindow.removeEventListener('pointerup', currentUp);
+      webWindow.removeEventListener('pointercancel', currentUp);
     }
 
     listenersRef.current = {
@@ -386,7 +392,13 @@ export function useDraggableInternal<TData = unknown>(
     if (committedStateRef.current === DraggableState.IDLE) {
       unregisterDroppedItem(internalDraggableId);
     }
-  }, [clearListeners, internalDraggableId, setActiveHoverSlot, setTranslation, unregisterDroppedItem]);
+  }, [
+    clearListeners,
+    internalDraggableId,
+    setActiveHoverSlot,
+    setTranslation,
+    unregisterDroppedItem,
+  ]);
 
   useEffect(() => {
     dragDisabledRef.current = dragDisabled;
@@ -455,7 +467,7 @@ export function useDraggableInternal<TData = unknown>(
 
       event.preventDefault?.();
 
-      const nativeEvent = event.nativeEvent;
+      const { nativeEvent } = event;
       if (!nativeEvent) {
         return;
       }
@@ -496,7 +508,7 @@ export function useDraggableInternal<TData = unknown>(
         }
 
         const pendingDrag = pendingDragRef.current;
-        if (!pendingDrag || pendingDrag.pointerId !== moveEvent.pointerId || dragDisabledRef.current) {
+        if (pendingDrag?.pointerId !== moveEvent.pointerId || dragDisabledRef.current) {
           return;
         }
 
@@ -531,7 +543,7 @@ export function useDraggableInternal<TData = unknown>(
         }
 
         const pendingDrag = pendingDragRef.current;
-        if (pendingDrag && pendingDrag.pointerId === upEvent.pointerId) {
+        if (pendingDrag?.pointerId === upEvent.pointerId) {
           pendingDragRef.current = null;
           clearListeners();
         }
@@ -542,9 +554,9 @@ export function useDraggableInternal<TData = unknown>(
         move: handleMove,
         up: handleUp,
       };
-      webWindow.addEventListener?.('pointermove', handleMove);
-      webWindow.addEventListener?.('pointerup', handleUp);
-      webWindow.addEventListener?.('pointercancel', handleUp);
+      webWindow.addEventListener('pointermove', handleMove);
+      webWindow.addEventListener('pointerup', handleUp);
+      webWindow.addEventListener('pointercancel', handleUp);
     },
     [
       clearListeners,
@@ -560,10 +572,7 @@ export function useDraggableInternal<TData = unknown>(
 
   const animatedStyle = useMemo(
     () => ({
-      transform: [
-        { translateX: translation.x },
-        { translateY: translation.y },
-      ],
+      transform: [{ translateX: translation.x }, { translateY: translation.y }],
     }),
     [translation.x, translation.y],
   );

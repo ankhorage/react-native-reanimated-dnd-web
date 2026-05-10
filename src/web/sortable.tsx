@@ -10,7 +10,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { type StyleProp, StyleSheet, View, type ViewStyle } from 'react-native';
+import { StyleSheet, View, type ViewStyle } from 'react-native';
 import {
   type HorizontalScrollDirection as HorizontalScrollDirectionType,
   type ScrollDirection as ScrollDirectionType,
@@ -27,27 +27,29 @@ import {
 
 type PositionMap = Record<string, number>;
 
-type SharedValueLike<T> = { value: T };
+interface SharedValueLike<T> {
+  value: T;
+}
 
-type PointerEventLike = {
+interface PointerEventLike {
   pointerId: number;
   pageX: number;
   pageY: number;
   button?: number;
-};
+}
 
-type PointerLikeNativeEvent = {
+interface PointerLikeNativeEvent {
   pointerId?: number;
   pageX?: number;
   pageY?: number;
   button?: number;
-};
+}
 
-type PointerDownEventLike = {
+interface PointerDownEventLike {
   nativeEvent?: PointerLikeNativeEvent;
-};
+}
 
-type WebWindowLike = {
+interface WebWindowLike {
   addEventListener: (
     type: 'pointermove' | 'pointerup' | 'pointercancel',
     listener: (event: PointerEventLike) => void,
@@ -56,37 +58,41 @@ type WebWindowLike = {
     type: 'pointermove' | 'pointerup' | 'pointercancel',
     listener: (event: PointerEventLike) => void,
   ) => void;
-};
+}
 
-type PointerListeners = {
+interface PointerListeners {
   move: ((event: PointerEventLike) => void) | null;
   up: ((event: PointerEventLike) => void) | null;
-};
+}
 
-type SortableItemDragContext = {
+interface SortableItemDragContext {
   pointerId: number;
   sourceIndex: number;
   targetIndex: number;
   startPageX: number;
   startPageY: number;
-};
+}
 
-type SortableItemPendingContext = {
+interface SortableItemPendingContext {
   pointerId: number;
   sourceIndex: number;
   startPageX: number;
   startPageY: number;
-};
+}
 
-type SortableItemDragApi = {
+interface SortableItemDragApi {
   beginTracking: (event: PointerDownEventLike) => void;
-};
+}
+
+interface WebOnlyViewStyle extends ViewStyle {
+  userSelect?: 'none';
+}
 
 const DRAG_THRESHOLD = 6;
 const DIRECTION_VERTICAL = 'vertical' as SortableDirectionType;
-const DIRECTION_HORIZONTAL = 'horizontal' as SortableDirectionType;
 const SCROLL_NONE = 'none' as ScrollDirectionType;
 const HORIZONTAL_SCROLL_NONE = 'none' as HorizontalScrollDirectionType;
+const HORIZONTAL_DIRECTION_VALUE = 'horizontal';
 
 export const ScrollDirection = {
   None: 'none',
@@ -111,18 +117,28 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
-function getWebWindow(): WebWindowLike | null {
-  if (typeof globalThis === 'undefined') return null;
+function isHorizontalDirection(direction: SortableDirectionType): boolean {
+  return String(direction) === HORIZONTAL_DIRECTION_VALUE;
+}
 
-  const maybeWindow = globalThis as unknown as Partial<WebWindowLike>;
-  if (
-    typeof maybeWindow.addEventListener !== 'function' ||
-    typeof maybeWindow.removeEventListener !== 'function'
-  ) {
+function isWebWindowLike(value: unknown): value is WebWindowLike {
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    'addEventListener' in value &&
+    typeof value.addEventListener === 'function' &&
+    'removeEventListener' in value &&
+    typeof value.removeEventListener === 'function'
+  );
+}
+
+function getWebWindow(): WebWindowLike | null {
+  const webWindow: unknown = globalThis;
+  if (!isWebWindowLike(webWindow)) {
     return null;
   }
 
-  return maybeWindow as WebWindowLike;
+  return webWindow;
 }
 
 function toPositionMap(candidate: unknown): PositionMap {
@@ -238,16 +254,16 @@ export function setAutoScroll(
   autoScroll: unknown,
 ): void {
   if (positionY <= lowerBound + scrollThreshold) {
-    writeSharedValue(autoScroll, ScrollDirection.Up as ScrollDirectionType);
+    writeSharedValue(autoScroll, ScrollDirection.Up);
     return;
   }
 
   if (positionY >= upperBound - scrollThreshold) {
-    writeSharedValue(autoScroll, ScrollDirection.Down as ScrollDirectionType);
+    writeSharedValue(autoScroll, ScrollDirection.Down);
     return;
   }
 
-  writeSharedValue(autoScroll, ScrollDirection.None as ScrollDirectionType);
+  writeSharedValue(autoScroll, ScrollDirection.None);
 }
 
 function createPositionsFromIds(ids: string[]): PositionMap {
@@ -266,7 +282,11 @@ function defaultItemKeyExtractor<TData>(item: TData, index: number): string {
   return `item-${index}`;
 }
 
-function findIdByIndex(positions: PositionMap, targetIndex: number, excludedId: string): string | null {
+function findIdByIndex(
+  positions: PositionMap,
+  targetIndex: number,
+  excludedId: string,
+): string | null {
   for (const [candidateId, candidateIndex] of Object.entries(positions)) {
     if (candidateId !== excludedId && candidateIndex === targetIndex) {
       return candidateId;
@@ -329,9 +349,9 @@ function SortableItemBase<T>({
   const pendingContextRef = useRef<SortableItemPendingContext | null>(null);
   const listenersRef = useRef<PointerListeners>({ move: null, up: null });
 
-  const isHorizontal = direction === DIRECTION_HORIZONTAL;
+  const isHorizontal = isHorizontalDirection(direction);
   const itemExtent = isHorizontal ? itemWidth : itemHeight;
-  const itemStep = (itemExtent ?? 0) + gap;
+  const itemStep = itemExtent + gap;
   const hasHandle = useMemo(() => childHasHandle(children), [children]);
 
   const clearListeners = useCallback(() => {
@@ -488,12 +508,21 @@ function SortableItemBase<T>({
       webWindow.addEventListener('pointerup', handleUp);
       webWindow.addEventListener('pointercancel', handleUp);
     },
-    [clearListeners, commitDrop, id, isHorizontal, itemStep, onDragStart, positions, updateDragTarget],
+    [
+      clearListeners,
+      commitDrop,
+      id,
+      isHorizontal,
+      itemStep,
+      onDragStart,
+      positions,
+      updateDragTarget,
+    ],
   );
 
   const beginTracking = useCallback(
     (event: PointerDownEventLike) => {
-      const nativeEvent = event.nativeEvent;
+      const { nativeEvent } = event;
       if (!nativeEvent) return;
 
       if (typeof nativeEvent.button === 'number' && nativeEvent.button !== 0) {
@@ -515,7 +544,7 @@ function SortableItemBase<T>({
     [beginTrackingInternal],
   );
 
-  const dragApi = useMemo<SortableItemDragApi>(() => ({ beginTracking }), [beginTracking]);
+  const dragApi = useMemo(() => ({ beginTracking }), [beginTracking]);
 
   return (
     <SortableItemDragContextValue.Provider value={dragApi}>
@@ -524,7 +553,7 @@ function SortableItemBase<T>({
         style={[
           isHorizontal && itemWidth > 0 ? { width: itemWidth } : null,
           !isHorizontal && itemHeight > 0 ? { height: itemHeight } : null,
-          style as StyleProp<ViewStyle>,
+          style,
           isDragging ? webStyles.dragging : null,
         ]}
       >
@@ -550,7 +579,7 @@ function SortableImpl<TData>({
   contentContainerStyle,
   itemKeyExtractor,
 }: SortableProps<TData>): React.JSX.Element {
-  const isHorizontal = direction === DIRECTION_HORIZONTAL;
+  const isHorizontal = isHorizontalDirection(direction);
   const isVertical = !isHorizontal;
 
   if (isVertical && (!itemHeight || itemHeight <= 0)) {
@@ -679,12 +708,15 @@ export function useSortableList<TData extends { id: string }>(
     positionsRef.current.value = createPositionsFromIds(ids);
   }, [data, itemKeyExtractor]);
 
-  const handleScroll = useCallback((event: { nativeEvent?: { contentOffset?: { y?: number } } }) => {
-    const y = event.nativeEvent?.contentOffset?.y;
-    if (typeof y === 'number') {
-      scrollYRef.current.value = y;
-    }
-  }, []);
+  const handleScroll = useCallback(
+    (event: { nativeEvent?: { contentOffset?: { y?: number } } }) => {
+      const y = event.nativeEvent?.contentOffset?.y;
+      if (typeof y === 'number') {
+        scrollYRef.current.value = y;
+      }
+    },
+    [],
+  );
 
   const handleScrollEnd = useCallback(() => {
     return undefined;
@@ -720,13 +752,17 @@ export function useSortableList<TData extends { id: string }>(
   };
 }
 
+const draggingStyle = {
+  opacity: 0.7,
+  userSelect: 'none',
+} satisfies WebOnlyViewStyle;
+
+const horizontalContentStyle = {
+  flexDirection: 'row',
+  alignItems: 'stretch',
+} satisfies WebOnlyViewStyle;
+
 const webStyles = StyleSheet.create({
-  dragging: {
-    opacity: 0.7,
-    userSelect: 'none' as ViewStyle['userSelect'],
-  },
-  horizontalContent: {
-    flexDirection: 'row',
-    alignItems: 'stretch',
-  },
+  dragging: draggingStyle,
+  horizontalContent: horizontalContentStyle,
 });

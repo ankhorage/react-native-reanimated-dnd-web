@@ -1,6 +1,7 @@
 import React, { type MutableRefObject, useCallback } from 'react';
 import { View } from 'react-native';
 import type { DroppableProps } from 'react-native-reanimated-dnd';
+
 import { useDroppable } from './useDroppable.web';
 
 export function Droppable<TData = unknown>({

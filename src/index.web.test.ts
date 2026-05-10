@@ -1,6 +1,6 @@
 import { describe, expect, mock, test } from 'bun:test';
 
-mock.module('react-native', () => ({
+await mock.module('react-native', () => ({
   View: ({ children }: { children?: unknown }) => children ?? null,
   StyleSheet: {
     create: <T extends Record<string, unknown>>(styles: T) => styles,

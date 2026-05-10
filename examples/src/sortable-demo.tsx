@@ -1,14 +1,18 @@
 import React, { useMemo, useState } from 'react';
 import { Text, View } from 'react-native';
+
 import { Sortable, SortableItem } from '../../src/sortableCompat.web';
 
-type DemoItem = { id: string; label: string };
-type DragEventRecord = {
+interface DemoItem {
+  id: string;
+  label: string;
+}
+interface DragEventRecord {
   demo: 'vertical' | 'horizontal';
   itemId: string;
   fromIndex: number;
   toIndex: number;
-};
+}
 
 declare global {
   interface Window {

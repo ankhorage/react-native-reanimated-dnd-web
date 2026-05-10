@@ -1,15 +1,15 @@
 import type { LayoutRect } from './geometry';
 
-type BoundingRectLike = {
+interface BoundingRectLike {
   left: number;
   top: number;
   width: number;
   height: number;
-};
+}
 
-type ElementLike = {
+interface ElementLike {
   getBoundingClientRect: () => BoundingRectLike;
-};
+}
 
 type MeasureCallback = (
   x: number,
@@ -20,26 +20,26 @@ type MeasureCallback = (
   pageY: number,
 ) => void;
 
-type MeasurableLike = {
+interface MeasurableLike {
   measure: (callback: MeasureCallback) => void;
-};
+}
 
-type WindowLike = {
+interface WindowLike {
   scrollX?: number;
   scrollY?: number;
-  addEventListener?: (
+  addEventListener: (
     type: 'pointermove' | 'pointerup' | 'pointercancel',
     listener: (event: PointerEvent) => void,
   ) => void;
-  removeEventListener?: (
+  removeEventListener: (
     type: 'pointermove' | 'pointerup' | 'pointercancel',
     listener: (event: PointerEvent) => void,
   ) => void;
-};
+}
 
-type RefLike = {
+interface RefLike {
   current: unknown;
-};
+}
 
 function isElementLike(value: unknown): value is ElementLike {
   return (
@@ -51,19 +51,28 @@ function isElementLike(value: unknown): value is ElementLike {
 }
 
 function isMeasurableLike(value: unknown): value is MeasurableLike {
-  return typeof value === 'object' && value !== null && 'measure' in value && typeof value.measure === 'function';
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    'measure' in value &&
+    typeof value.measure === 'function'
+  );
+}
+
+function isWindowLike(value: unknown): value is WindowLike {
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    'addEventListener' in value &&
+    typeof value.addEventListener === 'function' &&
+    'removeEventListener' in value &&
+    typeof value.removeEventListener === 'function'
+  );
 }
 
 export function getWebWindow(): WindowLike | null {
-  if (typeof globalThis === 'undefined') {
-    return null;
-  }
-
-  const webWindow = globalThis as unknown as WindowLike;
-  if (
-    typeof webWindow.addEventListener !== 'function' ||
-    typeof webWindow.removeEventListener !== 'function'
-  ) {
+  const webWindow: unknown = globalThis;
+  if (!isWindowLike(webWindow)) {
     return null;
   }
 

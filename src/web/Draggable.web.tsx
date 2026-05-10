@@ -1,33 +1,41 @@
 import React, {
   createContext,
   type ForwardedRef,
+  forwardRef,
   type MutableRefObject,
   type ReactNode,
-  forwardRef,
   useCallback,
   useContext,
   useMemo,
 } from 'react';
-import { StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
+import { type StyleProp, StyleSheet, View, type ViewStyle } from 'react-native';
 import type { DraggableProps } from 'react-native-reanimated-dnd';
+
 import { useDraggableInternal } from './useDraggable.web';
 
-type DraggableContextValue = {
-  beginTracking: (event: {
-    nativeEvent?: {
-      pointerId?: number;
-      pageX?: number;
-      pageY?: number;
-      button?: number;
-    };
-    preventDefault?: () => void;
-  }) => void;
-};
+interface DraggablePointerEventLike {
+  nativeEvent?: {
+    pointerId?: number;
+    pageX?: number;
+    pageY?: number;
+    button?: number;
+  };
+  preventDefault?: () => void;
+}
 
-type DraggableHandleProps = {
+interface DraggableContextValue {
+  beginTracking: (event: DraggablePointerEventLike) => void;
+}
+
+interface DraggableHandleProps {
   children?: ReactNode;
   style?: StyleProp<ViewStyle>;
-};
+}
+
+interface WebOnlyViewStyle extends ViewStyle {
+  touchAction?: 'none';
+  userSelect?: 'none';
+}
 
 const DraggableContext = createContext<DraggableContextValue | null>(null);
 
@@ -41,14 +49,14 @@ function assignRef(ref: ForwardedRef<unknown>, value: unknown): void {
     return;
   }
 
-  (ref as MutableRefObject<unknown>).current = value;
+  ref.current = value;
 }
 
 function DraggableHandle({ children, style }: DraggableHandleProps): React.JSX.Element {
   const draggableContext = useContext(DraggableContext);
 
   const handlePointerDown = useCallback(
-    (event: Parameters<NonNullable<DraggableContextValue['beginTracking']>>[0]) => {
+    (event: DraggablePointerEventLike) => {
       draggableContext?.beginTracking(event);
     },
     [draggableContext],
@@ -65,17 +73,12 @@ function DraggableComponent<TData = unknown>(
   { style: componentStyle, children, ...useDraggableHookOptions }: DraggableProps<TData>,
   ref: ForwardedRef<unknown>,
 ): React.JSX.Element {
-  const {
-    animatedViewProps,
-    hasHandle,
-    animatedViewRef,
-    beginTracking,
-    isDragging,
-  } = useDraggableInternal({
-    ...useDraggableHookOptions,
-    children,
-    handleComponent: DraggableHandle,
-  });
+  const { animatedViewProps, hasHandle, animatedViewRef, beginTracking, isDragging } =
+    useDraggableInternal({
+      ...useDraggableHookOptions,
+      children,
+      handleComponent: DraggableHandle,
+    });
 
   const combinedRef = useCallback(
     (value: unknown) => {
@@ -85,7 +88,7 @@ function DraggableComponent<TData = unknown>(
     [animatedViewRef, ref],
   );
 
-  const contextValue = useMemo<DraggableContextValue>(
+  const contextValue = useMemo(
     () => ({
       beginTracking,
     }),
@@ -118,16 +121,22 @@ export const Draggable = Object.assign(ForwardedDraggable, {
   Handle: DraggableHandle,
 });
 
+const surfaceStyle = {
+  touchAction: 'none',
+  alignSelf: 'flex-start',
+} satisfies WebOnlyViewStyle;
+
+const draggingStyle = {
+  opacity: 0.7,
+  userSelect: 'none',
+} satisfies WebOnlyViewStyle;
+
+const handleStyle = {
+  touchAction: 'none',
+} satisfies WebOnlyViewStyle;
+
 const webStyles = StyleSheet.create({
-  surface: {
-    touchAction: 'none' as ViewStyle['touchAction'],
-    alignSelf: 'flex-start' as ViewStyle['alignSelf'],
-  },
-  dragging: {
-    opacity: 0.7,
-    userSelect: 'none' as ViewStyle['userSelect'],
-  },
-  handle: {
-    touchAction: 'none' as ViewStyle['touchAction'],
-  },
+  surface: surfaceStyle,
+  dragging: draggingStyle,
+  handle: handleStyle,
 });
