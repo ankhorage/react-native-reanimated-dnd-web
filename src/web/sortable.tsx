@@ -85,10 +85,10 @@ interface SortableItemDragApi {
 }
 
 const DRAG_THRESHOLD = 6;
-const DIRECTION_VERTICAL = 'vertical' as SortableDirectionType;
-const DIRECTION_HORIZONTAL = 'horizontal' as SortableDirectionType;
-const SCROLL_NONE = 'none' as ScrollDirectionType;
-const HORIZONTAL_SCROLL_NONE = 'none' as HorizontalScrollDirectionType;
+const DIRECTION_VERTICAL = 'vertical' satisfies SortableDirectionType;
+const DIRECTION_HORIZONTAL = 'horizontal' satisfies SortableDirectionType;
+const SCROLL_NONE = 'none' satisfies ScrollDirectionType;
+const HORIZONTAL_SCROLL_NONE = 'none' satisfies HorizontalScrollDirectionType;
 
 export const ScrollDirection = {
   None: 'none',
@@ -114,9 +114,7 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 }
 
 function getWebWindow(): WebWindowLike | null {
-  if (typeof globalThis === 'undefined') return null;
-
-  const maybeWindow = globalThis as unknown as Partial<WebWindowLike>;
+  const maybeWindow = globalThis as Partial<WebWindowLike>;
   if (
     typeof maybeWindow.addEventListener !== 'function' ||
     typeof maybeWindow.removeEventListener !== 'function'
@@ -124,7 +122,10 @@ function getWebWindow(): WebWindowLike | null {
     return null;
   }
 
-  return maybeWindow as WebWindowLike;
+  return {
+    addEventListener: maybeWindow.addEventListener,
+    removeEventListener: maybeWindow.removeEventListener,
+  };
 }
 
 function toPositionMap(candidate: unknown): PositionMap {
@@ -240,16 +241,16 @@ export function setAutoScroll(
   autoScroll: unknown,
 ): void {
   if (positionY <= lowerBound + scrollThreshold) {
-    writeSharedValue(autoScroll, ScrollDirection.Up as ScrollDirectionType);
+    writeSharedValue(autoScroll, ScrollDirection.Up);
     return;
   }
 
   if (positionY >= upperBound - scrollThreshold) {
-    writeSharedValue(autoScroll, ScrollDirection.Down as ScrollDirectionType);
+    writeSharedValue(autoScroll, ScrollDirection.Down);
     return;
   }
 
-  writeSharedValue(autoScroll, ScrollDirection.None as ScrollDirectionType);
+  writeSharedValue(autoScroll, ScrollDirection.None);
 }
 
 function createPositionsFromIds(ids: string[]): PositionMap {
@@ -530,7 +531,7 @@ function SortableItemBase<T>({
     [beginTrackingInternal],
   );
 
-  const dragApi = useMemo<SortableItemDragApi>(() => ({ beginTracking }), [beginTracking]);
+  const dragApi = useMemo(() => ({ beginTracking }), [beginTracking]);
 
   return (
     <SortableItemDragContextValue.Provider value={dragApi}>
