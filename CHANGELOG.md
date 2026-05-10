@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.3.2
+
+### Patch Changes
+
+- f586a7d: Add @ankhorage/devtools with: eslint, prettier, knip
+
 ## 0.3.1
 
 - Refresh the published README with a concise overview, installation, usage, and cross-platform use cases.
