@@ -7,13 +7,13 @@ export interface LayoutRect {
   height: number;
 }
 
-export type DropSlotLike = LayoutRect & {
+export interface DropSlotLike extends LayoutRect {
   id: string;
   onDrop?: (data: unknown) => void;
   dropAlignment?: DropAlignment;
   dropOffset?: DropOffset;
   capacity?: number;
-};
+}
 
 export interface Translation {
   x: number;
