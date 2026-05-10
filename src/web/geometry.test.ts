@@ -1,4 +1,5 @@
 import { describe, expect, test } from 'bun:test';
+
 import {
   applyAxisToTranslation,
   clampTranslationToBounds,
@@ -15,9 +16,7 @@ describe('geometry helpers', () => {
     expect(hasCollision(draggableRect, slotRect, 'intersect')).toBe(true);
     expect(hasCollision(draggableRect, slotRect, 'contain')).toBe(true);
     expect(hasCollision(draggableRect, slotRect, 'center')).toBe(true);
-    expect(
-      hasCollision({ x: 10, y: 10, width: 20, height: 20 }, slotRect, 'contain'),
-    ).toBe(false);
+    expect(hasCollision({ x: 10, y: 10, width: 20, height: 20 }, slotRect, 'contain')).toBe(false);
   });
 
   test('drop alignment resolves expected target position', () => {

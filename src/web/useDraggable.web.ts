@@ -15,37 +15,38 @@ import type {
   UseDraggableOptions,
   UseDraggableReturn,
 } from 'react-native-reanimated-dnd';
-import { SlotsContext } from './DropProvider.web';
+
 import { getWebWindow, measureRef } from './domMeasurement';
+import { SlotsContext } from './DropProvider.web';
 import {
   applyAxisToTranslation,
   clampTranslationToBounds,
+  type DropSlotLike,
   findMatchingSlot,
   getTranslatedRect,
-  resolveAlignedDropPosition,
-  type DropSlotLike,
   type LayoutRect,
+  resolveAlignedDropPosition,
   type Translation,
 } from './geometry';
 
-export type PointerLikeNativeEvent = {
+export interface PointerLikeNativeEvent {
   pointerId?: number;
   pageX?: number;
   pageY?: number;
   button?: number;
-};
+}
 
-export type PointerDownEventLike = {
+export interface PointerDownEventLike {
   nativeEvent?: PointerLikeNativeEvent;
   preventDefault?: () => void;
-};
+}
 
-type DragSession = {
+interface DragSession {
   pointerId: number;
   startPageX: number;
   startPageY: number;
   startTranslation: Translation;
-};
+}
 
 type InternalUseDraggableReturn = UseDraggableReturn & {
   beginTracking: (event: PointerDownEventLike) => void;
@@ -178,7 +179,7 @@ export function useDraggableInternal<TData = unknown>(
   } = useContext(SlotsContext);
 
   const setTranslation = useCallback((next: Translation) => {
-    const current = translationRef.current;
+    const { current } = translationRef;
     if (current.x === next.x && current.y === next.y) {
       return;
     }
@@ -386,7 +387,13 @@ export function useDraggableInternal<TData = unknown>(
     if (committedStateRef.current === DraggableState.IDLE) {
       unregisterDroppedItem(internalDraggableId);
     }
-  }, [clearListeners, internalDraggableId, setActiveHoverSlot, setTranslation, unregisterDroppedItem]);
+  }, [
+    clearListeners,
+    internalDraggableId,
+    setActiveHoverSlot,
+    setTranslation,
+    unregisterDroppedItem,
+  ]);
 
   useEffect(() => {
     dragDisabledRef.current = dragDisabled;
@@ -455,7 +462,7 @@ export function useDraggableInternal<TData = unknown>(
 
       event.preventDefault?.();
 
-      const nativeEvent = event.nativeEvent;
+      const { nativeEvent } = event;
       if (!nativeEvent) {
         return;
       }
@@ -496,7 +503,7 @@ export function useDraggableInternal<TData = unknown>(
         }
 
         const pendingDrag = pendingDragRef.current;
-        if (!pendingDrag || pendingDrag.pointerId !== moveEvent.pointerId || dragDisabledRef.current) {
+        if (pendingDrag?.pointerId !== moveEvent.pointerId || dragDisabledRef.current) {
           return;
         }
 
@@ -531,7 +538,7 @@ export function useDraggableInternal<TData = unknown>(
         }
 
         const pendingDrag = pendingDragRef.current;
-        if (pendingDrag && pendingDrag.pointerId === upEvent.pointerId) {
+        if (pendingDrag?.pointerId === upEvent.pointerId) {
           pendingDragRef.current = null;
           clearListeners();
         }
@@ -560,10 +567,7 @@ export function useDraggableInternal<TData = unknown>(
 
   const animatedStyle = useMemo(
     () => ({
-      transform: [
-        { translateX: translation.x },
-        { translateY: translation.y },
-      ],
+      transform: [{ translateX: translation.x }, { translateY: translation.y }],
     }),
     [translation.x, translation.y],
   );

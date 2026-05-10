@@ -1,7 +1,8 @@
 import { useCallback, useContext, useEffect, useRef } from 'react';
 import type { UseDroppableOptions, UseDroppableReturn } from 'react-native-reanimated-dnd';
-import { SlotsContext } from './DropProvider.web';
+
 import { measureRef } from './domMeasurement';
+import { SlotsContext } from './DropProvider.web';
 
 let nextDroppableId = 1;
 
@@ -69,7 +70,12 @@ export function useDroppable<TData = unknown>(
     return () => {
       unregisterPositionUpdateListener(instanceId);
     };
-  }, [instanceId, registerPositionUpdateListener, unregisterPositionUpdateListener, updateDroppablePosition]);
+  }, [
+    instanceId,
+    registerPositionUpdateListener,
+    unregisterPositionUpdateListener,
+    updateDroppablePosition,
+  ]);
 
   useEffect(() => {
     if (dropDisabled) {

@@ -1,11 +1,11 @@
 import type { CollisionAlgorithm, DropAlignment, DropOffset } from 'react-native-reanimated-dnd';
 
-export type LayoutRect = {
+export interface LayoutRect {
   x: number;
   y: number;
   width: number;
   height: number;
-};
+}
 
 export type DropSlotLike = LayoutRect & {
   id: string;
@@ -15,10 +15,10 @@ export type DropSlotLike = LayoutRect & {
   capacity?: number;
 };
 
-export type Translation = {
+export interface Translation {
   x: number;
   y: number;
-};
+}
 
 export function expandRect(rect: LayoutRect): LayoutRect & { right: number; bottom: number } {
   return {

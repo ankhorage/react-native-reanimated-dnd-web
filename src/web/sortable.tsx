@@ -10,7 +10,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { type StyleProp, StyleSheet, View, type ViewStyle } from 'react-native';
+import { StyleSheet, View, type ViewStyle } from 'react-native';
 import {
   type HorizontalScrollDirection as HorizontalScrollDirectionType,
   type ScrollDirection as ScrollDirectionType,
@@ -27,27 +27,29 @@ import {
 
 type PositionMap = Record<string, number>;
 
-type SharedValueLike<T> = { value: T };
+interface SharedValueLike<T> {
+  value: T;
+}
 
-type PointerEventLike = {
+interface PointerEventLike {
   pointerId: number;
   pageX: number;
   pageY: number;
   button?: number;
-};
+}
 
-type PointerLikeNativeEvent = {
+interface PointerLikeNativeEvent {
   pointerId?: number;
   pageX?: number;
   pageY?: number;
   button?: number;
-};
+}
 
-type PointerDownEventLike = {
+interface PointerDownEventLike {
   nativeEvent?: PointerLikeNativeEvent;
-};
+}
 
-type WebWindowLike = {
+interface WebWindowLike {
   addEventListener: (
     type: 'pointermove' | 'pointerup' | 'pointercancel',
     listener: (event: PointerEventLike) => void,
@@ -56,31 +58,31 @@ type WebWindowLike = {
     type: 'pointermove' | 'pointerup' | 'pointercancel',
     listener: (event: PointerEventLike) => void,
   ) => void;
-};
+}
 
-type PointerListeners = {
+interface PointerListeners {
   move: ((event: PointerEventLike) => void) | null;
   up: ((event: PointerEventLike) => void) | null;
-};
+}
 
-type SortableItemDragContext = {
+interface SortableItemDragContext {
   pointerId: number;
   sourceIndex: number;
   targetIndex: number;
   startPageX: number;
   startPageY: number;
-};
+}
 
-type SortableItemPendingContext = {
+interface SortableItemPendingContext {
   pointerId: number;
   sourceIndex: number;
   startPageX: number;
   startPageY: number;
-};
+}
 
-type SortableItemDragApi = {
+interface SortableItemDragApi {
   beginTracking: (event: PointerDownEventLike) => void;
-};
+}
 
 const DRAG_THRESHOLD = 6;
 const DIRECTION_VERTICAL = 'vertical' as SortableDirectionType;
@@ -266,7 +268,11 @@ function defaultItemKeyExtractor<TData>(item: TData, index: number): string {
   return `item-${index}`;
 }
 
-function findIdByIndex(positions: PositionMap, targetIndex: number, excludedId: string): string | null {
+function findIdByIndex(
+  positions: PositionMap,
+  targetIndex: number,
+  excludedId: string,
+): string | null {
   for (const [candidateId, candidateIndex] of Object.entries(positions)) {
     if (candidateId !== excludedId && candidateIndex === targetIndex) {
       return candidateId;
@@ -488,12 +494,21 @@ function SortableItemBase<T>({
       webWindow.addEventListener('pointerup', handleUp);
       webWindow.addEventListener('pointercancel', handleUp);
     },
-    [clearListeners, commitDrop, id, isHorizontal, itemStep, onDragStart, positions, updateDragTarget],
+    [
+      clearListeners,
+      commitDrop,
+      id,
+      isHorizontal,
+      itemStep,
+      onDragStart,
+      positions,
+      updateDragTarget,
+    ],
   );
 
   const beginTracking = useCallback(
     (event: PointerDownEventLike) => {
-      const nativeEvent = event.nativeEvent;
+      const { nativeEvent } = event;
       if (!nativeEvent) return;
 
       if (typeof nativeEvent.button === 'number' && nativeEvent.button !== 0) {
@@ -524,7 +539,7 @@ function SortableItemBase<T>({
         style={[
           isHorizontal && itemWidth > 0 ? { width: itemWidth } : null,
           !isHorizontal && itemHeight > 0 ? { height: itemHeight } : null,
-          style as StyleProp<ViewStyle>,
+          style,
           isDragging ? webStyles.dragging : null,
         ]}
       >
@@ -679,12 +694,15 @@ export function useSortableList<TData extends { id: string }>(
     positionsRef.current.value = createPositionsFromIds(ids);
   }, [data, itemKeyExtractor]);
 
-  const handleScroll = useCallback((event: { nativeEvent?: { contentOffset?: { y?: number } } }) => {
-    const y = event.nativeEvent?.contentOffset?.y;
-    if (typeof y === 'number') {
-      scrollYRef.current.value = y;
-    }
-  }, []);
+  const handleScroll = useCallback(
+    (event: { nativeEvent?: { contentOffset?: { y?: number } } }) => {
+      const y = event.nativeEvent?.contentOffset?.y;
+      if (typeof y === 'number') {
+        scrollYRef.current.value = y;
+      }
+    },
+    [],
+  );
 
   const handleScrollEnd = useCallback(() => {
     return undefined;

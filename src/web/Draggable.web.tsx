@@ -1,18 +1,19 @@
 import React, {
   createContext,
   type ForwardedRef,
+  forwardRef,
   type MutableRefObject,
   type ReactNode,
-  forwardRef,
   useCallback,
   useContext,
   useMemo,
 } from 'react';
-import { StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
+import { type StyleProp, StyleSheet, View, type ViewStyle } from 'react-native';
 import type { DraggableProps } from 'react-native-reanimated-dnd';
+
 import { useDraggableInternal } from './useDraggable.web';
 
-type DraggableContextValue = {
+interface DraggableContextValue {
   beginTracking: (event: {
     nativeEvent?: {
       pointerId?: number;
@@ -22,12 +23,12 @@ type DraggableContextValue = {
     };
     preventDefault?: () => void;
   }) => void;
-};
+}
 
-type DraggableHandleProps = {
+interface DraggableHandleProps {
   children?: ReactNode;
   style?: StyleProp<ViewStyle>;
-};
+}
 
 const DraggableContext = createContext<DraggableContextValue | null>(null);
 
@@ -65,17 +66,12 @@ function DraggableComponent<TData = unknown>(
   { style: componentStyle, children, ...useDraggableHookOptions }: DraggableProps<TData>,
   ref: ForwardedRef<unknown>,
 ): React.JSX.Element {
-  const {
-    animatedViewProps,
-    hasHandle,
-    animatedViewRef,
-    beginTracking,
-    isDragging,
-  } = useDraggableInternal({
-    ...useDraggableHookOptions,
-    children,
-    handleComponent: DraggableHandle,
-  });
+  const { animatedViewProps, hasHandle, animatedViewRef, beginTracking, isDragging } =
+    useDraggableInternal({
+      ...useDraggableHookOptions,
+      children,
+      handleComponent: DraggableHandle,
+    });
 
   const combinedRef = useCallback(
     (value: unknown) => {
