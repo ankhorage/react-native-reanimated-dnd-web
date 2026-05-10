@@ -8,7 +8,7 @@ import React, {
   useContext,
   useMemo,
 } from 'react';
-import { StyleSheet, type StyleProp, View, type ViewStyle } from 'react-native';
+import { type StyleProp, StyleSheet, View, type ViewStyle } from 'react-native';
 import type { DraggableProps } from 'react-native-reanimated-dnd';
 
 import { useDraggableInternal } from './useDraggable.web';
