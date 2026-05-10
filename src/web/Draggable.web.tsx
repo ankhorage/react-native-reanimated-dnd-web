@@ -8,7 +8,7 @@ import React, {
   useContext,
   useMemo,
 } from 'react';
-import { type StyleProp, StyleSheet, View, type ViewStyle } from 'react-native';
+import { type StyleProp, View, type ViewStyle } from 'react-native';
 import type { DraggableProps } from 'react-native-reanimated-dnd';
 
 import { useDraggableInternal } from './useDraggable.web';
@@ -30,6 +30,11 @@ interface DraggableContextValue {
 interface DraggableHandleProps {
   children?: ReactNode;
   style?: StyleProp<ViewStyle>;
+}
+
+interface WebOnlyViewStyle extends ViewStyle {
+  touchAction?: 'none';
+  userSelect?: 'none';
 }
 
 const DraggableContext = createContext<DraggableContextValue | null>(null);
@@ -116,16 +121,16 @@ export const Draggable = Object.assign(ForwardedDraggable, {
   Handle: DraggableHandle,
 });
 
-const webStyles = StyleSheet.create({
+const webStyles = {
   surface: {
-    touchAction: 'none' as ViewStyle['touchAction'],
-    alignSelf: 'flex-start' as ViewStyle['alignSelf'],
+    touchAction: 'none',
+    alignSelf: 'flex-start',
   },
   dragging: {
     opacity: 0.7,
-    userSelect: 'none' as ViewStyle['userSelect'],
+    userSelect: 'none',
   },
   handle: {
-    touchAction: 'none' as ViewStyle['touchAction'],
+    touchAction: 'none',
   },
-});
+} satisfies Record<string, WebOnlyViewStyle>;
