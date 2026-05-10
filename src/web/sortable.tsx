@@ -90,7 +90,6 @@ interface WebOnlyViewStyle extends ViewStyle {
 
 const DRAG_THRESHOLD = 6;
 const DIRECTION_VERTICAL = 'vertical' as SortableDirectionType;
-const DIRECTION_HORIZONTAL = 'horizontal' as SortableDirectionType;
 const SCROLL_NONE = 'none' as ScrollDirectionType;
 const HORIZONTAL_SCROLL_NONE = 'none' as HorizontalScrollDirectionType;
 const HORIZONTAL_DIRECTION_VALUE = 'horizontal';
