@@ -49,7 +49,7 @@ function assignRef(ref: ForwardedRef<unknown>, value: unknown): void {
     return;
   }
 
-  (ref as MutableRefObject<unknown>).current = value;
+  ref.current = value;
 }
 
 function DraggableHandle({ children, style }: DraggableHandleProps): React.JSX.Element {
