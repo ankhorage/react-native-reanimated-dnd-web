@@ -14,7 +14,7 @@
   "description": "Web adapter for react-native-reanimated-dnd with upstream passthrough and parity-compatible web drag/drop and sortable support.",
   "homepage": "https://github.com/ankhorage/react-native-reanimated-dnd-web#readme",
   "bugs": {
-    "url": "https://github.com/ankhorage/react-native-reanimated-dnd-web#issues"
+    "url": "https://github.com/ankhorage/react-native-reanimated-dnd-web/issues"
   },
   "repository": {
     "type": "git",
