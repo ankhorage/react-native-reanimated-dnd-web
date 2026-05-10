@@ -59,7 +59,7 @@
     "build": "tsup --config tsup.config.ts && bun run build:assert-artifacts",
     "build:assert-artifacts": "node ./scripts/assert-artifacts.mjs",
     "release:validate-meta": "node ./scripts/verify-version-sync.mjs",
-    "lint": "ankhorage-eslint . --fix --max-warnings=0",
+    "lint": "ankhorage-eslint . --max-warnings=0",
     "lint:fix": "ankhorage-eslint . --fix --max-warnings=0",
     "format": "ankhorage-prettier --write .",
     "format:check": "ankhorage-prettier --check .",
