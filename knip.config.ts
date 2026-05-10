@@ -6,6 +6,7 @@ export default createKnipConfig({
     'react-native',
     'react-native-gesture-handler',
     'react-native-reanimated',
+    'react-native-web',
   ],
   ignoreFiles: ['.prettierrc.js', 'eslint.config.mjs'],
 });
