@@ -8,7 +8,7 @@ import React, {
   useContext,
   useMemo,
 } from 'react';
-import { type StyleProp, View, type ViewStyle } from 'react-native';
+import { StyleSheet, type StyleProp, View, type ViewStyle } from 'react-native';
 import type { DraggableProps } from 'react-native-reanimated-dnd';
 
 import { useDraggableInternal } from './useDraggable.web';
@@ -121,16 +121,22 @@ export const Draggable = Object.assign(ForwardedDraggable, {
   Handle: DraggableHandle,
 });
 
-const webStyles = {
-  surface: {
-    touchAction: 'none',
-    alignSelf: 'flex-start',
-  },
-  dragging: {
-    opacity: 0.7,
-    userSelect: 'none',
-  },
-  handle: {
-    touchAction: 'none',
-  },
-} satisfies Record<string, WebOnlyViewStyle>;
+const surfaceStyle = {
+  touchAction: 'none',
+  alignSelf: 'flex-start',
+} satisfies WebOnlyViewStyle;
+
+const draggingStyle = {
+  opacity: 0.7,
+  userSelect: 'none',
+} satisfies WebOnlyViewStyle;
+
+const handleStyle = {
+  touchAction: 'none',
+} satisfies WebOnlyViewStyle;
+
+const webStyles = StyleSheet.create({
+  surface: surfaceStyle,
+  dragging: draggingStyle,
+  handle: handleStyle,
+});
