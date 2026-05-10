@@ -27,11 +27,11 @@ interface MeasurableLike {
 interface WindowLike {
   scrollX?: number;
   scrollY?: number;
-  addEventListener?: (
+  addEventListener: (
     type: 'pointermove' | 'pointerup' | 'pointercancel',
     listener: (event: PointerEvent) => void,
   ) => void;
-  removeEventListener?: (
+  removeEventListener: (
     type: 'pointermove' | 'pointerup' | 'pointercancel',
     listener: (event: PointerEvent) => void,
   ) => void;
@@ -60,11 +60,7 @@ function isMeasurableLike(value: unknown): value is MeasurableLike {
 }
 
 export function getWebWindow(): WindowLike | null {
-  if (typeof globalThis === 'undefined') {
-    return null;
-  }
-
-  const webWindow = globalThis as unknown as WindowLike;
+  const webWindow = globalThis as Partial<WindowLike>;
   if (
     typeof webWindow.addEventListener !== 'function' ||
     typeof webWindow.removeEventListener !== 'function'
@@ -72,7 +68,12 @@ export function getWebWindow(): WindowLike | null {
     return null;
   }
 
-  return webWindow;
+  return {
+    scrollX: webWindow.scrollX,
+    scrollY: webWindow.scrollY,
+    addEventListener: webWindow.addEventListener,
+    removeEventListener: webWindow.removeEventListener,
+  };
 }
 
 export function measureNode(node: unknown): LayoutRect | null {
