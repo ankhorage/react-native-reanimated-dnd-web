@@ -123,7 +123,6 @@ export const Draggable = Object.assign(ForwardedDraggable, {
 
 const surfaceStyle = {
   touchAction: 'none',
-  alignSelf: 'flex-start',
 } satisfies WebOnlyViewStyle;
 
 const draggingStyle = {

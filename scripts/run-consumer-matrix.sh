@@ -224,8 +224,8 @@ write_expo_files() {
   "private": true,
   "version": "0.0.0",
   "scripts": {
-    "export:web": "expo export --platform web --non-interactive",
-    "export:android": "expo export --platform android --non-interactive"
+    "export:web": "expo export --platform web",
+    "export:android": "expo export --platform android"
   },
   "dependencies": {
     "${PACKAGE_NAME}": "file:${TARBALL_ABS}",
@@ -238,7 +238,8 @@ write_expo_files() {
     "react-native-web": "^0.21.2"
   },
   "devDependencies": {
-    "@babel/core": "^7.28.4"
+    "@babel/core": "^7.28.4",
+    "babel-preset-expo": "~54.0.10"
   }
 }
 EOF
