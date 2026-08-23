@@ -10,6 +10,22 @@ permissions:
   contents: read
 
 jobs:
+  acceptance-contracts:
+    name: acceptance-contracts
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: '1.3.14'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: bun install --frozen-lockfile
+      - run: bun run check:parity
+      - run: bun run compiler:healthcheck
+
   web-e2e:
     name: web-e2e-${{ matrix.browser }}
     runs-on: ubuntu-latest

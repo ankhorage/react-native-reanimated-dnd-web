@@ -64,6 +64,17 @@ mode is used.
 | Metro / module resolution       | VERIFIED: NO CHANGE REQUIRED | Expo native export validates the packed native entry; web exports validate the packed browser entry.        |
 | TypeScript types                | CHANGE REQUIRED              | TS 6 and RN 0.86 exposed enum, style, generic, gesture, ref, and sortable return-shape changes now fixed.   |
 
+## Development startup and time to first frame
+
+This standalone package does not own or run an actual Ankhorage development client, so it cannot
+produce a reliable device startup or time-to-first-frame measurement. The package-level acceptance
+evidence is limited to clean packed Expo 57 consumers: production web and Android exports pass with
+Expo's default Babel configuration and without Worklets bundle mode.
+
+Development-client startup and time to first frame remain downstream observational/native
+acceptance checks in an actual Ankhorage Expo 57 consumer on target hardware. This package makes no
+numerical startup claim.
+
 ## Sortable Risk Coverage
 
 Covered by Playwright:
