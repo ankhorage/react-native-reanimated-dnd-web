@@ -29,6 +29,73 @@ run_npm_install() {
   NPM_CONFIG_CACHE="${npm_cache}" npm install --no-audit --no-fund
 }
 
+verify_candidate_install() {
+  node --input-type=module - "${TARBALL_ABS}" "${PACKAGE_NAME}" <<'EOF'
+import fs from 'node:fs';
+import path from 'node:path';
+import { execFileSync } from 'node:child_process';
+
+const [tarball, packageName] = process.argv.slice(2);
+const packageJson = JSON.parse(fs.readFileSync('package.json', 'utf8'));
+const lockfile = JSON.parse(fs.readFileSync('package-lock.json', 'utf8'));
+const installed = JSON.parse(
+  fs.readFileSync(path.join('node_modules', packageName, 'package.json'), 'utf8'),
+);
+const packed = JSON.parse(execFileSync('tar', ['-xOf', tarball, 'package/package.json'], { encoding: 'utf8' }));
+const lockEntry = lockfile.packages?.[`node_modules/${packageName}`];
+
+if (packageJson.dependencies?.[packageName] !== `file:${tarball}`) {
+  throw new Error(`Consumer does not depend on the candidate tarball: ${tarball}`);
+}
+if (!lockEntry?.resolved?.endsWith(path.basename(tarball))) {
+  throw new Error(`Lockfile does not resolve ${packageName} from ${path.basename(tarball)}`);
+}
+if (installed.name !== packageName || installed.version !== packed.version) {
+  throw new Error(`Installed candidate metadata mismatch for ${packageName}`);
+}
+console.log(`[consumer-matrix] verified packed candidate ${installed.name}@${installed.version}`);
+EOF
+}
+
+assert_no_manual_worklets_config() {
+  local plugin_pattern='react-native-(reanimated|worklets)/'"plugin"
+  local bundle_pattern='bundle'"Mode"'|bundle-'"mode"
+  if find "${APP_DIR}" -path '*/node_modules' -prune -o -type f -print0 \
+    | xargs -0 grep -El "${plugin_pattern}|${bundle_pattern}" >/dev/null; then
+    echo "Expo fixture must use Expo's default Reanimated/Worklets transform without bundle mode."
+    exit 1
+  fi
+
+  if [[ -e "${APP_DIR}/babel.config.js" || -e "${APP_DIR}/babel.config.cjs" || -e "${APP_DIR}/babel.config.mjs" ]]; then
+    echo "Expo fixture must not carry a custom Babel config."
+    exit 1
+  fi
+}
+
+verify_expo_versions() {
+  node --input-type=module <<'EOF'
+import fs from 'node:fs';
+
+const expected = {
+  expo: '57.0.15',
+  react: '19.2.3',
+  'react-dom': '19.2.3',
+  'react-native': '0.86.2',
+  'react-native-gesture-handler': '2.32.0',
+  'react-native-reanimated': '4.5.1',
+  'react-native-reanimated-dnd': '2.0.0',
+  'react-native-web': '0.21.2',
+  'react-native-worklets': '0.10.1',
+};
+
+for (const [name, version] of Object.entries(expected)) {
+  const installed = JSON.parse(fs.readFileSync(`node_modules/${name}/package.json`, 'utf8')).version;
+  if (installed !== version) throw new Error(`${name}: expected ${version}, received ${installed}`);
+}
+console.log(`[consumer-matrix] verified Expo SDK 57 animation stack ${JSON.stringify(expected)}`);
+EOF
+}
+
 run_vite_consumer() {
   mkdir -p "${APP_DIR}/src"
 
@@ -42,10 +109,13 @@ run_vite_consumer() {
   },
   "dependencies": {
     "${PACKAGE_NAME}": "file:${TARBALL_ABS}",
-    "react": "19.1.0",
-    "react-dom": "19.1.0",
-    "react-native": "0.81.5",
-    "react-native-web": "^0.21.2"
+    "react": "19.2.3",
+    "react-dom": "19.2.3",
+    "react-native": "0.86.2",
+    "react-native-gesture-handler": "~2.32.0",
+    "react-native-reanimated": "4.5.1",
+    "react-native-web": "~0.21.0",
+    "react-native-worklets": "0.10.1"
   },
   "devDependencies": {
     "@vitejs/plugin-react": "^5.0.4",
@@ -124,6 +194,7 @@ EOF
 
   cd "${APP_DIR}"
   run_npm_install
+  verify_candidate_install
   npm run build
 }
 
@@ -139,11 +210,14 @@ run_next_consumer() {
   },
   "dependencies": {
     "${PACKAGE_NAME}": "file:${TARBALL_ABS}",
-    "next": "16.0.0",
-    "react": "19.1.0",
-    "react-dom": "19.1.0",
-    "react-native": "0.81.5",
-    "react-native-web": "^0.21.2"
+    "next": "16.3.2",
+    "react": "19.2.3",
+    "react-dom": "19.2.3",
+    "react-native": "0.86.2",
+    "react-native-gesture-handler": "~2.32.0",
+    "react-native-reanimated": "4.5.1",
+    "react-native-web": "~0.21.0",
+    "react-native-worklets": "0.10.1"
   }
 }
 EOF
@@ -214,6 +288,7 @@ EOF
 
   cd "${APP_DIR}"
   run_npm_install
+  verify_candidate_install
   NEXT_TELEMETRY_DISABLED=1 npm run build
 }
 
@@ -229,17 +304,14 @@ write_expo_files() {
   },
   "dependencies": {
     "${PACKAGE_NAME}": "file:${TARBALL_ABS}",
-    "expo": "~54.0.33",
-    "react": "19.1.0",
-    "react-dom": "19.1.0",
-    "react-native": "0.81.5",
-    "react-native-gesture-handler": "~2.28.0",
-    "react-native-reanimated": "~4.1.1",
-    "react-native-web": "^0.21.2"
-  },
-  "devDependencies": {
-    "@babel/core": "^7.28.4",
-    "babel-preset-expo": "~54.0.10"
+    "expo": "~57.0.15",
+    "react": "19.2.3",
+    "react-dom": "19.2.3",
+    "react-native": "0.86.2",
+    "react-native-gesture-handler": "~2.32.0",
+    "react-native-reanimated": "4.5.1",
+    "react-native-web": "~0.21.0",
+    "react-native-worklets": "0.10.1"
   }
 }
 EOF
@@ -252,16 +324,6 @@ EOF
     "platforms": ["android", "web"]
   }
 }
-EOF
-
-  cat > "${APP_DIR}/babel.config.js" <<'EOF'
-module.exports = function (api) {
-  api.cache(true);
-  return {
-    presets: ['babel-preset-expo'],
-    plugins: ['react-native-reanimated/plugin'],
-  };
-};
 EOF
 
   cat > "${APP_DIR}/App.js" <<'EOF'
@@ -352,9 +414,13 @@ run_expo_consumer() {
   local platform="$1"
   mkdir -p "${APP_DIR}"
   write_expo_files
+  assert_no_manual_worklets_config
 
   cd "${APP_DIR}"
   run_npm_install
+  verify_candidate_install
+  verify_expo_versions
+  assert_no_manual_worklets_config
   EXPO_NO_TELEMETRY=1 CI=1 npm run "export:${platform}"
 }
 

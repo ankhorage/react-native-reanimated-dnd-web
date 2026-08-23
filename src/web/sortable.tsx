@@ -11,14 +11,20 @@ import React, {
   useState,
 } from 'react';
 import { StyleSheet, View, type ViewStyle } from 'react-native';
+import type { SharedValue } from 'react-native-reanimated';
 import {
   type HorizontalScrollDirection as HorizontalScrollDirectionType,
   type ScrollDirection as ScrollDirectionType,
+  type SortableData,
   type SortableDirection as SortableDirectionType,
   type SortableHandleProps,
   type SortableItemProps,
   type SortableProps,
   type SortableRenderItemProps,
+  type UseHorizontalSortableListOptions,
+  type UseHorizontalSortableListReturn,
+  type UseHorizontalSortableOptions,
+  type UseHorizontalSortableReturn,
   type UseSortableListOptions,
   type UseSortableListReturn,
   type UseSortableOptions,
@@ -26,10 +32,6 @@ import {
 } from 'react-native-reanimated-dnd';
 
 type PositionMap = Record<string, number>;
-
-interface SharedValueLike<T> {
-  value: T;
-}
 
 interface PointerEventLike {
   pointerId: number;
@@ -95,20 +97,20 @@ const HORIZONTAL_SCROLL_NONE = 'none' as HorizontalScrollDirectionType;
 const HORIZONTAL_DIRECTION_VALUE = 'horizontal';
 
 export const ScrollDirection = {
-  None: 'none',
-  Up: 'up',
-  Down: 'down',
+  None: 'none' as ScrollDirectionType,
+  Up: 'up' as ScrollDirectionType,
+  Down: 'down' as ScrollDirectionType,
 } as const;
 
 export const HorizontalScrollDirection = {
-  None: 'none',
-  Left: 'left',
-  Right: 'right',
+  None: 'none' as HorizontalScrollDirectionType,
+  Left: 'left' as HorizontalScrollDirectionType,
+  Right: 'right' as HorizontalScrollDirectionType,
 } as const;
 
 export const SortableDirection = {
-  Vertical: 'vertical',
-  Horizontal: 'horizontal',
+  Vertical: DIRECTION_VERTICAL,
+  Horizontal: 'horizontal' as SortableDirectionType,
 } as const;
 
 const SortableItemDragContextValue = createContext<SortableItemDragApi | null>(null);
@@ -165,7 +167,7 @@ function readPositions(positions: unknown): PositionMap {
 
 function writePositions(positions: unknown, next: PositionMap): void {
   if (isRecord(positions) && 'value' in positions) {
-    (positions as SharedValueLike<PositionMap>).value = next;
+    positions.value = next;
     return;
   }
 
@@ -184,11 +186,37 @@ function writeSharedValue<T>(sharedValue: unknown, value: T): void {
     return;
   }
 
-  (sharedValue as SharedValueLike<T>).value = value;
+  sharedValue.value = value;
 }
 
-function createSharedValue<T>(value: T): SharedValueLike<T> {
-  return { value };
+function createSharedValue<T>(initialValue: T): SharedValue<T> {
+  let value = initialValue;
+  const listeners = new Map<number, (nextValue: T) => void>();
+  const notify = () => {
+    for (const listener of listeners.values()) listener(value);
+  };
+
+  return {
+    get value() {
+      return value;
+    },
+    set value(nextValue: T) {
+      value = nextValue;
+      notify();
+    },
+    get: () => value,
+    set: (nextValue) => {
+      value =
+        typeof nextValue === 'function' ? (nextValue as (currentValue: T) => T)(value) : nextValue;
+      notify();
+    },
+    addListener: (listenerId, listener) => listeners.set(listenerId, listener),
+    removeListener: (listenerId) => listeners.delete(listenerId),
+    modify: (modifier) => {
+      if (modifier) value = modifier(value);
+      notify();
+    },
+  };
 }
 
 export function clamp(value: number, lowerBound: number, upperBound: number): number {
@@ -204,9 +232,6 @@ export function objectMove(object: PositionMap, from: number, to: number): Posit
   const safeFrom = clamp(from, 0, entries.length - 1);
   const safeTo = clamp(to, 0, entries.length - 1);
   const [moved] = entries.splice(safeFrom, 1);
-  if (!moved) {
-    return object;
-  }
 
   entries.splice(safeTo, 0, moved);
 
@@ -567,7 +592,7 @@ export const SortableItem = Object.assign(SortableItemBase, {
   Handle: SortableHandle,
 });
 
-function SortableImpl<TData>({
+function SortableImpl<TData extends SortableData>({
   data,
   renderItem,
   direction = DIRECTION_VERTICAL,
@@ -578,11 +603,16 @@ function SortableImpl<TData>({
   style,
   contentContainerStyle,
   itemKeyExtractor,
+  enableDynamicHeights = false,
 }: SortableProps<TData>): React.JSX.Element {
   const isHorizontal = isHorizontalDirection(direction);
   const isVertical = !isHorizontal;
 
-  if (isVertical && (!itemHeight || itemHeight <= 0)) {
+  if (enableDynamicHeights) {
+    throw new Error('enableDynamicHeights is not supported on web.');
+  }
+
+  if (isVertical && (typeof itemHeight !== 'number' || itemHeight <= 0)) {
     throw new Error('itemHeight is required and must be > 0 when direction is vertical.');
   }
 
@@ -596,19 +626,18 @@ function SortableImpl<TData>({
     [data, keyExtractor],
   );
 
-  const positionsRef = useRef<SharedValueLike<PositionMap>>(createSharedValue({}));
-  const lowerBoundRef = useRef<SharedValueLike<number>>(createSharedValue(0));
-  const leftBoundRef = useRef<SharedValueLike<number>>(createSharedValue(0));
-  const autoScrollDirectionRef = useRef<SharedValueLike<ScrollDirectionType>>(
-    createSharedValue(SCROLL_NONE),
-  );
-  const autoScrollHorizontalDirectionRef = useRef<SharedValueLike<HorizontalScrollDirectionType>>(
-    createSharedValue(HORIZONTAL_SCROLL_NONE),
+  const positions = useMemo(() => createSharedValue<PositionMap>({}), []);
+  const lowerBound = useMemo(() => createSharedValue(0), []);
+  const leftBound = useMemo(() => createSharedValue(0), []);
+  const autoScrollDirection = useMemo(() => createSharedValue(SCROLL_NONE), []);
+  const autoScrollHorizontalDirection = useMemo(
+    () => createSharedValue(HORIZONTAL_SCROLL_NONE),
+    [],
   );
 
   useEffect(() => {
-    positionsRef.current.value = createPositionsFromIds(ids);
-  }, [ids]);
+    positions.value = createPositionsFromIds(ids);
+  }, [ids, positions]);
 
   const renderSortableItem = useCallback(
     (item: TData, index: number) => {
@@ -617,22 +646,14 @@ function SortableImpl<TData>({
         item,
         index,
         id,
-        positions: positionsRef.current as SortableRenderItemProps<TData>['positions'],
+        positions,
         direction,
-        lowerBound: isVertical
-          ? (lowerBoundRef.current as SortableRenderItemProps<TData>['lowerBound'])
-          : undefined,
-        leftBound: isHorizontal
-          ? (leftBoundRef.current as SortableRenderItemProps<TData>['leftBound'])
-          : undefined,
-        autoScrollDirection: isVertical
-          ? (autoScrollDirectionRef.current as SortableRenderItemProps<TData>['autoScrollDirection'])
-          : undefined,
-        autoScrollHorizontalDirection: isHorizontal
-          ? (autoScrollHorizontalDirectionRef.current as SortableRenderItemProps<TData>['autoScrollHorizontalDirection'])
-          : undefined,
+        lowerBound: isVertical ? lowerBound : undefined,
+        leftBound: isHorizontal ? leftBound : undefined,
+        autoScrollDirection: isVertical ? autoScrollDirection : undefined,
+        autoScrollHorizontalDirection: isHorizontal ? autoScrollHorizontalDirection : undefined,
         itemsCount: data.length,
-        itemHeight,
+        itemHeight: typeof itemHeight === 'number' ? itemHeight : undefined,
         itemWidth,
         gap,
         paddingHorizontal,
@@ -658,13 +679,18 @@ function SortableImpl<TData>({
       direction,
       gap,
       ids,
+      autoScrollDirection,
+      autoScrollHorizontalDirection,
       isHorizontal,
       isVertical,
       itemHeight,
       itemWidth,
       keyExtractor,
+      leftBound,
       paddingHorizontal,
+      positions,
       renderItem,
+      lowerBound,
     ],
   );
 
@@ -679,43 +705,87 @@ function SortableImpl<TData>({
 
 export const Sortable = memo(SortableImpl) as typeof SortableImpl;
 
-export function useSortable<T>(_options: UseSortableOptions<T>): UseSortableReturn {
-  const panGestureHandler = useMemo(() => ({ onStart: () => undefined }), []);
+interface WebInertGesture {
+  onStart: () => undefined;
+}
+
+type WebSortableReturn<TReturn extends UseSortableReturn | UseHorizontalSortableReturn> = Omit<
+  TReturn,
+  'panGestureHandler' | 'handlePanGestureHandler'
+> & {
+  panGestureHandler: WebInertGesture;
+  handlePanGestureHandler: WebInertGesture;
+};
+
+function useInertSortableGestures(): {
+  panGestureHandler: WebInertGesture;
+  handlePanGestureHandler: WebInertGesture;
+} {
+  const panGestureHandler = useMemo<WebInertGesture>(() => ({ onStart: () => undefined }), []);
+
+  return {
+    panGestureHandler,
+    handlePanGestureHandler: panGestureHandler,
+  };
+}
+
+export function useSortable<T>(_options: UseSortableOptions<T>): UseSortableReturn;
+export function useSortable<T>(
+  _options: UseSortableOptions<T>,
+): UseSortableReturn | WebSortableReturn<UseSortableReturn> {
+  const { panGestureHandler, handlePanGestureHandler } = useInertSortableGestures();
+  const [hasHandle, setHasHandle] = useState(false);
+  const registerHandle = useCallback((registered: boolean) => setHasHandle(registered), []);
 
   return {
     animatedStyle: {},
     panGestureHandler,
+    handlePanGestureHandler,
     isMoving: false,
-    hasHandle: false,
+    hasHandle,
+    registerHandle,
   };
 }
 
-export function useSortableList<TData extends { id: string }>(
+export function useSortableList<TData extends SortableData>(
   options: UseSortableListOptions<TData>,
 ): UseSortableListReturn<TData> {
-  const { data, itemHeight, itemKeyExtractor = (item) => item.id } = options;
+  const {
+    data,
+    itemHeight,
+    enableDynamicHeights = false,
+    estimatedItemHeight = typeof itemHeight === 'number' ? itemHeight : 0,
+    itemKeyExtractor = (item) => item.id,
+  } = options;
 
-  const positionsRef = useRef<SharedValueLike<PositionMap>>(createSharedValue({}));
-  const scrollYRef = useRef<SharedValueLike<number>>(createSharedValue(0));
-  const autoScrollRef = useRef<SharedValueLike<ScrollDirectionType>>(
-    createSharedValue(SCROLL_NONE),
-  );
+  if (enableDynamicHeights) {
+    throw new Error('enableDynamicHeights is not supported on web.');
+  }
+
+  if (typeof itemHeight !== 'number' || itemHeight <= 0) {
+    throw new Error('useSortableList requires one fixed itemHeight on web.');
+  }
+
+  const positions = useMemo(() => createSharedValue<PositionMap>({}), []);
+  const scrollY = useMemo(() => createSharedValue(0), []);
+  const autoScroll = useMemo(() => createSharedValue(SCROLL_NONE), []);
+  const itemHeights = useMemo(() => createSharedValue<Record<string, number>>({}), []);
   const scrollViewRef = useRef<unknown>(null);
   const dropProviderRef = useRef<unknown>(null);
 
   useEffect(() => {
     const ids = data.map((item, index) => itemKeyExtractor(item, index));
-    positionsRef.current.value = createPositionsFromIds(ids);
-  }, [data, itemKeyExtractor]);
+    positions.value = createPositionsFromIds(ids);
+  }, [data, itemKeyExtractor, positions]);
 
   const handleScroll = useCallback(
     (event: { nativeEvent?: { contentOffset?: { y?: number } } }) => {
       const y = event.nativeEvent?.contentOffset?.y;
       if (typeof y === 'number') {
-        scrollYRef.current.value = y;
+        scrollY.value = y;
       }
     },
-    [],
+    [scrollY],
   );
 
   const handleScrollEnd = useCallback(() => {
@@ -729,25 +799,126 @@ export function useSortableList<TData extends { id: string }>(
       const id = itemKeyExtractor(item, index);
       return {
         id,
-        positions: positionsRef.current,
-        lowerBound: scrollYRef.current,
-        autoScrollDirection: autoScrollRef.current,
+        positions,
+        lowerBound: scrollY,
+        autoScrollDirection: autoScroll,
         itemsCount: data.length,
         itemHeight,
+        isDynamicHeight: false,
+        estimatedItemHeight,
+        itemHeights,
       };
     },
-    [data.length, itemHeight, itemKeyExtractor],
+    [
+      autoScroll,
+      data.length,
+      estimatedItemHeight,
+      itemHeight,
+      itemHeights,
+      itemKeyExtractor,
+      positions,
+      scrollY,
+    ],
   );
 
   return {
-    positions: positionsRef.current,
-    scrollY: scrollYRef.current,
-    autoScroll: autoScrollRef.current,
+    positions,
+    scrollY,
+    autoScroll,
     scrollViewRef,
     dropProviderRef: dropProviderRef as UseSortableListReturn<TData>['dropProviderRef'],
     handleScroll,
     handleScrollEnd,
     contentHeight,
+    isDynamicHeight: false,
+    itemHeights,
+    getItemProps,
+  };
+}
+
+export function useHorizontalSortable<T>(
+  _options: UseHorizontalSortableOptions<T>,
+): UseHorizontalSortableReturn;
+export function useHorizontalSortable<T>(
+  _options: UseHorizontalSortableOptions<T>,
+): UseHorizontalSortableReturn | WebSortableReturn<UseHorizontalSortableReturn> {
+  const { panGestureHandler, handlePanGestureHandler } = useInertSortableGestures();
+  const [hasHandle, setHasHandle] = useState(false);
+  const registerHandle = useCallback((registered: boolean) => setHasHandle(registered), []);
+
+  return {
+    animatedStyle: {},
+    panGestureHandler,
+    handlePanGestureHandler,
+    isMoving: false,
+    hasHandle,
+    registerHandle,
+  };
+}
+
+export function useHorizontalSortableList<TData extends SortableData>(
+  options: UseHorizontalSortableListOptions<TData>,
+): UseHorizontalSortableListReturn<TData> {
+  const {
+    data,
+    itemWidth,
+    gap = 0,
+    paddingHorizontal = 0,
+    itemKeyExtractor = (item) => item.id,
+  } = options;
+  const positions = useMemo(() => createSharedValue<PositionMap>({}), []);
+  const scrollX = useMemo(() => createSharedValue(0), []);
+  const autoScroll = useMemo(() => createSharedValue(HORIZONTAL_SCROLL_NONE), []);
+  const scrollViewRef = useRef<unknown>(null);
+  const dropProviderRef = useRef<unknown>(null);
+
+  useEffect(() => {
+    positions.value = createPositionsFromIds(
+      data.map((item, index) => itemKeyExtractor(item, index)),
+    );
+  }, [data, itemKeyExtractor, positions]);
+
+  const handleScroll = useCallback(
+    (event: { nativeEvent?: { contentOffset?: { x?: number } } }) => {
+      const x = event.nativeEvent?.contentOffset?.x;
+      if (typeof x === 'number') scrollX.value = x;
+    },
+    [scrollX],
+  );
+  const handleScrollEnd = useCallback(() => undefined, []);
+  const getItemProps = useCallback(
+    (item: TData, index: number) => ({
+      id: itemKeyExtractor(item, index),
+      positions,
+      leftBound: scrollX,
+      autoScrollDirection: autoScroll,
+      itemsCount: data.length,
+      itemWidth,
+      gap,
+      paddingHorizontal,
+    }),
+    [
+      autoScroll,
+      data.length,
+      gap,
+      itemKeyExtractor,
+      itemWidth,
+      paddingHorizontal,
+      positions,
+      scrollX,
+    ],
+  );
+
+  return {
+    positions,
+    scrollX,
+    autoScroll,
+    scrollViewRef,
+    dropProviderRef: dropProviderRef as UseHorizontalSortableListReturn<TData>['dropProviderRef'],
+    handleScroll,
+    handleScrollEnd,
+    contentWidth:
+      data.length * itemWidth + Math.max(0, data.length - 1) * gap + paddingHorizontal * 2,
     getItemProps,
   };
 }

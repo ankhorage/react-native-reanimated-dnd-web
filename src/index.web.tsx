@@ -16,6 +16,8 @@ export {
   SortableItem,
   useDraggable,
   useDroppable,
+  useHorizontalSortable,
+  useHorizontalSortableList,
   useSortable,
   useSortableList,
 } from './sortableCompat.web';

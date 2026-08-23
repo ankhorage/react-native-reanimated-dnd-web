@@ -53,7 +53,7 @@ export function hasAvailableCapacityForDroppable(
   let droppableSlot: DropSlotLike | null = null;
   for (const key in slots) {
     const slot = slots[Number(key)];
-    if (slot?.id === droppableId) {
+    if (slot.id === droppableId) {
       droppableSlot = slot;
       break;
     }
@@ -113,7 +113,7 @@ export const DropProvider = forwardRef<DropProviderRef, DropProviderProps>(funct
     setActiveHoverSlotId((current) => (current === id ? null : current));
   }, []);
 
-  const isRegistered = useCallback((id: number) => slotsRef.current[id] !== undefined, []);
+  const isRegistered = useCallback((id: number) => id in slotsRef.current, []);
 
   const getSlots = useCallback(() => slotsRef.current, []);
 

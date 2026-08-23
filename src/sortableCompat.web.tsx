@@ -12,6 +12,8 @@ export {
   Sortable,
   SortableDirection,
   SortableItem,
+  useHorizontalSortable,
+  useHorizontalSortableList,
   useSortable,
   useSortableList,
 } from './web/sortable';

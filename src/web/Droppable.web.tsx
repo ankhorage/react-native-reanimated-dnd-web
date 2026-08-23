@@ -1,4 +1,4 @@
-import React, { type MutableRefObject, useCallback } from 'react';
+import React from 'react';
 import { View } from 'react-native';
 import type { DroppableProps } from 'react-native-reanimated-dnd';
 
@@ -27,16 +27,9 @@ export function Droppable<TData = unknown>({
     capacity,
   });
 
-  const combinedRef = useCallback(
-    (value: unknown) => {
-      (animatedViewRef as MutableRefObject<unknown>).current = value;
-    },
-    [animatedViewRef],
-  );
-
   return (
     <View
-      ref={combinedRef}
+      ref={animatedViewRef as React.Ref<View>}
       onLayout={viewProps.onLayout}
       style={[style, viewProps.style]}
       collapsable={false}

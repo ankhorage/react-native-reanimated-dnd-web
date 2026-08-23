@@ -26,6 +26,7 @@ describe('geometry helpers', () => {
       y: 80,
       width: 120,
       height: 100,
+      onDrop: () => undefined,
       dropAlignment: 'bottom-right' as const,
       dropOffset: { x: 4, y: 6 },
     };
@@ -51,8 +52,8 @@ describe('geometry helpers', () => {
 
   test('matching slot selection is deterministic for overlapping eligible slots', () => {
     const slots = {
-      1: { id: 'zone-a', x: 10, y: 10, width: 100, height: 100 },
-      2: { id: 'zone-b', x: 10, y: 10, width: 100, height: 100 },
+      1: { id: 'zone-a', x: 10, y: 10, width: 100, height: 100, onDrop: () => undefined },
+      2: { id: 'zone-b', x: 10, y: 10, width: 100, height: 100, onDrop: () => undefined },
     };
 
     const match = findMatchingSlot(

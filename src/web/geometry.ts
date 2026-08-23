@@ -9,7 +9,7 @@ export interface LayoutRect {
 
 export interface DropSlotLike extends LayoutRect {
   id: string;
-  onDrop?: (data: unknown) => void;
+  onDrop: (data: unknown) => void;
   dropAlignment?: DropAlignment;
   dropOffset?: DropOffset;
   capacity?: number;
@@ -118,10 +118,6 @@ export function findMatchingSlot(
   for (const key in slots) {
     const slotId = Number.parseInt(key, 10);
     const slot = slots[slotId];
-
-    if (!slot) {
-      continue;
-    }
 
     if (hasCollision(draggableRect, slot, collisionAlgorithm) && canAcceptDrop(slot)) {
       return { slotId, slot };

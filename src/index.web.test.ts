@@ -29,6 +29,8 @@ describe('web entry export parity surface', () => {
       'setPosition',
       'useDraggable',
       'useDroppable',
+      'useHorizontalSortable',
+      'useHorizontalSortableList',
       'useSortable',
       'useSortableList',
     ].sort();
@@ -55,6 +57,8 @@ describe('web compatibility exports', () => {
   test('hook exports are callable symbols', () => {
     expect(typeof adapter.useDraggable).toBe('function');
     expect(typeof adapter.useDroppable).toBe('function');
+    expect(typeof adapter.useHorizontalSortable).toBe('function');
+    expect(typeof adapter.useHorizontalSortableList).toBe('function');
     expect(typeof adapter.useSortable).toBe('function');
     expect(typeof adapter.useSortableList).toBe('function');
   });

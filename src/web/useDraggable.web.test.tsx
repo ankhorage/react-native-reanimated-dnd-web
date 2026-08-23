@@ -35,4 +35,10 @@ describe('draggable helpers', () => {
     expect(consoleWarn).toHaveBeenCalledTimes(1);
     consoleWarn.mockRestore();
   });
+
+  test('pre-drag delay must elapse before pointer movement activates a drag', () => {
+    expect(draggableModule.hasSatisfiedPreDragDelay(1_000, 250, 1_249)).toBe(false);
+    expect(draggableModule.hasSatisfiedPreDragDelay(1_000, 250, 1_250)).toBe(true);
+    expect(draggableModule.hasSatisfiedPreDragDelay(1_000, -1, 1_000)).toBe(true);
+  });
 });
