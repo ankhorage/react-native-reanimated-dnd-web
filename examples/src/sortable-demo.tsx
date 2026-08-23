@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
-import { Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 
-import { Sortable, SortableItem } from '../../src/sortableCompat.web';
+import { Sortable, SortableDirection, SortableItem } from '../../src/sortableCompat.web';
 
 interface DemoItem {
   id: string;
@@ -62,7 +62,7 @@ function VerticalDemo(): React.JSX.Element {
       <View style={styles.listWrap}>
         <Sortable
           data={items}
-          direction="vertical"
+          direction={SortableDirection.Vertical}
           itemHeight={60}
           gap={8}
           itemKeyExtractor={(item) => item.id}
@@ -70,7 +70,7 @@ function VerticalDemo(): React.JSX.Element {
             <SortableItem
               id={id}
               data={item}
-              direction="vertical"
+              direction={SortableDirection.Vertical}
               positions={positions}
               itemsCount={itemsCount}
               itemHeight={60}
@@ -124,7 +124,7 @@ function HorizontalDemo(): React.JSX.Element {
       <View style={styles.horizontalWrap}>
         <Sortable
           data={items}
-          direction="horizontal"
+          direction={SortableDirection.Horizontal}
           itemWidth={130}
           gap={10}
           itemKeyExtractor={(item) => item.id}
@@ -139,7 +139,7 @@ function HorizontalDemo(): React.JSX.Element {
             <SortableItem
               id={id}
               data={item}
-              direction="horizontal"
+              direction={SortableDirection.Horizontal}
               positions={positions}
               itemsCount={itemsCount}
               itemWidth={130}
@@ -184,9 +184,9 @@ export function App(): React.JSX.Element {
   return demo === 'horizontal' ? <HorizontalDemo /> : <VerticalDemo />;
 }
 
-const styles = {
+const styles = StyleSheet.create({
   page: {
-    minHeight: '100vh',
+    minHeight: '100%',
     backgroundColor: '#0f172a',
     color: '#e2e8f0',
     padding: 24,
@@ -243,4 +243,4 @@ const styles = {
     color: '#cbd5e1',
     fontWeight: 700,
   },
-};
+});

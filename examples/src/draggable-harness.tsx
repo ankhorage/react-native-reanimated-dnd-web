@@ -1,5 +1,5 @@
 import React, { useMemo, useRef, useState } from 'react';
-import { Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 
 import { Draggable, Droppable, DropProvider } from '../../src/sortableCompat.web';
 
@@ -51,7 +51,7 @@ function pushDroppedItemsSnapshot(snapshot: DroppedItemsSnapshot): void {
 }
 
 function BasicDemo(): React.JSX.Element {
-  const boundsRef = useRef<View>(null);
+  const boundsRef = useRef<View>(null!);
 
   return (
     <DropProvider>
@@ -262,9 +262,9 @@ export function App(): React.JSX.Element {
   return demo === 'dropzones' ? <DropzonesDemo /> : <BasicDemo />;
 }
 
-const styles = {
+const styles = StyleSheet.create({
   page: {
-    minHeight: '100vh',
+    minHeight: '100%',
     backgroundColor: '#0f172a',
     color: '#e2e8f0',
     padding: 24,
@@ -405,4 +405,4 @@ const styles = {
     fontWeight: 700,
     fontSize: 12,
   },
-};
+});

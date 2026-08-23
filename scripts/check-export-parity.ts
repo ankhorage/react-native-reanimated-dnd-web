@@ -20,7 +20,7 @@ type RuntimeKeysResult = {
 };
 
 function normalizeKeys(keys: Iterable<string>): string[] {
-  const ignored = new Set(exportParityConfig.ignoredKeys);
+  const ignored = new Set<string>(exportParityConfig.ignoredKeys);
 
   return [...new Set(keys)].filter((key) => !ignored.has(key)).sort((a, b) => a.localeCompare(b));
 }

@@ -5,7 +5,7 @@ import React, {
   useCallback,
   useContext,
   useEffect,
-  useLayoutEffect,
+  useId,
   useMemo,
   useRef,
   useState,
@@ -47,17 +47,33 @@ interface DragSession {
   startPageX: number;
   startPageY: number;
   startTranslation: Translation;
+  startedAt: number;
 }
 
-type InternalUseDraggableReturn = UseDraggableReturn & {
+interface WebPointerGesture {
+  onPointerDown: (event: PointerDownEventLike) => void;
+}
+
+type WebUseDraggableReturn = Omit<UseDraggableReturn, 'gesture'> & {
+  gesture: WebPointerGesture;
+};
+
+type InternalUseDraggableReturn = Omit<UseDraggableReturn, 'animatedViewProps' | 'gesture'> & {
+  animatedViewProps: {
+    style: {
+      transform: [{ translateX: number }, { translateY: number }];
+    };
+    onLayout: () => void;
+  };
+  gesture: WebPointerGesture;
   beginTracking: (event: PointerDownEventLike) => void;
   isDragging: boolean;
 };
 
 const DRAG_THRESHOLD = 6;
-const DRAGGABLE_STATE_IDLE: DraggableStateType = 'IDLE';
-const DRAGGABLE_STATE_DRAGGING: DraggableStateType = 'DRAGGING';
-const DRAGGABLE_STATE_DROPPED: DraggableStateType = 'DROPPED';
+const DRAGGABLE_STATE_IDLE = 'IDLE' as DraggableStateType;
+const DRAGGABLE_STATE_DRAGGING = 'DRAGGING' as DraggableStateType;
+const DRAGGABLE_STATE_DROPPED = 'DROPPED' as DraggableStateType;
 
 export const DraggableState = {
   IDLE: DRAGGABLE_STATE_IDLE,
@@ -82,7 +98,7 @@ export function resetAnimationFunctionWarningForTests(): void {
 
 export function hasHandleComponent(
   children: ReactNode,
-  handleComponent: ComponentType<unknown>,
+  handleComponent: ComponentType<{ children?: ReactNode }>,
 ): boolean {
   return React.Children.toArray(children).some((child) => {
     if (!React.isValidElement(child)) {
@@ -106,6 +122,14 @@ function getDragDistance(deltaX: number, deltaY: number): number {
   return Math.hypot(deltaX, deltaY);
 }
 
+export function hasSatisfiedPreDragDelay(
+  startedAt: number,
+  preDragDelay: number,
+  now: number,
+): boolean {
+  return now - startedAt >= Math.max(0, preDragDelay);
+}
+
 function countDroppedItemsByDroppableId(
   droppedItems: DroppedItemsMap,
   ignoredDraggableId?: string,
@@ -124,15 +148,13 @@ function countDroppedItemsByDroppableId(
 }
 
 export function useDraggableInternal<TData = unknown>(
-  options: UseDraggableOptions<TData> & {
-    children?: ReactNode;
-    handleComponent?: ComponentType<unknown>;
-  },
+  options: UseDraggableOptions<TData>,
 ): InternalUseDraggableReturn {
   const {
     data,
     draggableId,
     dragDisabled = false,
+    preDragDelay = 0,
     onDragStart,
     onDragEnd,
     onDragging,
@@ -141,14 +163,13 @@ export function useDraggableInternal<TData = unknown>(
     dragBoundsRef,
     dragAxis = 'both',
     collisionAlgorithm = 'intersect',
-    children,
-    handleComponent,
   } = options;
   const animatedViewRef = useRef<unknown>(null);
   const [state, setState] = useState<DraggableStateType>(DraggableState.IDLE);
   const [hasHandle, setHasHandle] = useState(false);
   const [translation, setTranslationState] = useState<Translation>(getZeroTranslation);
   const [isDragging, setIsDragging] = useState(false);
+  const registerHandle = useCallback((registered: boolean) => setHasHandle(registered), []);
 
   const translationRef = useRef<Translation>(getZeroTranslation());
   const committedTranslationRef = useRef<Translation>(getZeroTranslation());
@@ -166,9 +187,8 @@ export function useDraggableInternal<TData = unknown>(
     move: null,
     up: null,
   });
-  const internalDraggableId = useRef(
-    draggableId ?? `draggable-${Math.random().toString(36).slice(2, 11)}`,
-  ).current;
+  const reactId = useId();
+  const internalDraggableId = draggableId ?? `draggable-${reactId}`;
   const {
     getSlots,
     setActiveHoverSlot,
@@ -315,7 +335,7 @@ export function useDraggableInternal<TData = unknown>(
       return;
     }
 
-    match.slot.onDrop?.(data);
+    match.slot.onDrop(data);
     registerDroppedItem(internalDraggableId, match.slot.id, data);
     const targetPosition = resolveAlignedDropPosition(match.slot, draggableRect);
     const nextTranslation = {
@@ -411,15 +431,6 @@ export function useDraggableInternal<TData = unknown>(
     }
   }, [cancelActiveInteraction, dragDisabled, state]);
 
-  useLayoutEffect(() => {
-    if (!children || !handleComponent) {
-      setHasHandle(false);
-      return;
-    }
-
-    setHasHandle(hasHandleComponent(children, handleComponent));
-  }, [children, handleComponent]);
-
   useEffect(() => {
     onStateChange?.(state);
   }, [onStateChange, state]);
@@ -494,6 +505,7 @@ export function useDraggableInternal<TData = unknown>(
         startPageX: pageX,
         startPageY: pageY,
         startTranslation: translationRef.current,
+        startedAt: Date.now(),
       };
 
       const handleMove = (moveEvent: PointerEvent) => {
@@ -515,6 +527,10 @@ export function useDraggableInternal<TData = unknown>(
         const deltaX = moveEvent.pageX - pendingDrag.startPageX;
         const deltaY = moveEvent.pageY - pendingDrag.startPageY;
         if (getDragDistance(deltaX, deltaY) <= DRAG_THRESHOLD) {
+          return;
+        }
+
+        if (!hasSatisfiedPreDragDelay(pendingDrag.startedAt, preDragDelay, Date.now())) {
           return;
         }
 
@@ -564,18 +580,22 @@ export function useDraggableInternal<TData = unknown>(
       contextOnDragStart,
       data,
       onDragStart,
+      preDragDelay,
       updateBounds,
       updateDrag,
       updateDraggablePosition,
     ],
   );
 
-  const animatedStyle = useMemo(
+  const animatedStyle = useMemo<InternalUseDraggableReturn['animatedViewProps']['style']>(
     () => ({
       transform: [{ translateX: translation.x }, { translateY: translation.y }],
     }),
     [translation.x, translation.y],
   );
+  const gesture: WebPointerGesture = {
+    onPointerDown: beginTracking,
+  };
 
   return {
     animatedViewProps: {
@@ -585,12 +605,11 @@ export function useDraggableInternal<TData = unknown>(
         updateBounds();
       },
     },
-    gesture: {
-      onPointerDown: beginTracking,
-    } as UseDraggableReturn['gesture'],
+    gesture,
     state,
     animatedViewRef: animatedViewRef as UseDraggableReturn['animatedViewRef'],
     hasHandle,
+    registerHandle,
     beginTracking,
     isDragging,
   };
@@ -598,7 +617,10 @@ export function useDraggableInternal<TData = unknown>(
 
 export function useDraggable<TData = unknown>(
   options: UseDraggableOptions<TData>,
-): UseDraggableReturn {
+): UseDraggableReturn;
+export function useDraggable<TData = unknown>(
+  options: UseDraggableOptions<TData>,
+): UseDraggableReturn | WebUseDraggableReturn {
   const result = useDraggableInternal(options);
   return {
     animatedViewProps: result.animatedViewProps,
@@ -606,5 +628,6 @@ export function useDraggable<TData = unknown>(
     state: result.state,
     animatedViewRef: result.animatedViewRef,
     hasHandle: result.hasHandle,
+    registerHandle: result.registerHandle,
   };
 }

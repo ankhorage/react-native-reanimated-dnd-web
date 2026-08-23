@@ -135,8 +135,10 @@ test.describe('draggable web compatibility', () => {
       ),
     );
     expect(axisEvents.length).toBeGreaterThan(0);
-    const maxY = Math.max(...axisEvents.map((event: { ty: number }) => Math.abs(event.ty)));
-    const maxX = Math.max(...axisEvents.map((event: { tx: number }) => event.tx));
+    const maxY = Math.max(
+      ...axisEvents.map((event) => (event.type === 'dragging' ? Math.abs(event.ty) : 0)),
+    );
+    const maxX = Math.max(...axisEvents.map((event) => (event.type === 'dragging' ? event.tx : 0)));
     expect(maxY).toBeLessThan(2);
     expect(maxX).toBeLessThanOrEqual(188);
 
@@ -154,7 +156,7 @@ test.describe('draggable web compatibility', () => {
 
     const events = await page.evaluate(() => window.__draggableEvents ?? []);
     expect(
-      events.some((event: { draggableId: string }) => event.draggableId === 'disabled-item'),
+      events.some((event) => 'draggableId' in event && event.draggableId === 'disabled-item'),
     ).toBe(false);
 
     expect(errors).toEqual([]);

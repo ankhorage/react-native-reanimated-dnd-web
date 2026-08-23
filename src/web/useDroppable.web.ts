@@ -1,13 +1,15 @@
-import { useCallback, useContext, useEffect, useRef } from 'react';
+import { useCallback, useContext, useEffect, useId, useRef } from 'react';
 import type { UseDroppableOptions, UseDroppableReturn } from 'react-native-reanimated-dnd';
 
 import { measureRef } from './domMeasurement';
 import { SlotsContext } from './DropProvider.web';
 
-let nextDroppableId = 1;
-
-export function getUniqueDroppableId(): number {
-  return nextDroppableId++;
+function getDroppableId(reactId: string): number {
+  let hash = 0;
+  for (const character of reactId) {
+    hash = (hash * 31 + (character.codePointAt(0) ?? 0)) | 0;
+  }
+  return Math.abs(hash) || 1;
 }
 
 export function useDroppable<TData = unknown>(
@@ -25,9 +27,10 @@ export function useDroppable<TData = unknown>(
   } = options;
 
   const animatedViewRef = useRef<unknown>(null);
-  const id = useRef(getUniqueDroppableId()).current;
-  const stringId = useRef(droppableId ?? `droppable-${id}`).current;
-  const instanceId = useRef(`droppable-${id}-${Math.random().toString(36).slice(2, 11)}`).current;
+  const reactId = useId();
+  const id = getDroppableId(reactId);
+  const stringId = droppableId ?? `droppable-${reactId}`;
+  const instanceId = `droppable-instance-${reactId}`;
   const {
     register,
     unregister,
@@ -50,7 +53,7 @@ export function useDroppable<TData = unknown>(
       y: measurement.y,
       width: measurement.width,
       height: measurement.height,
-      onDrop,
+      onDrop: (data: unknown) => onDrop(data as TData),
       dropAlignment: dropAlignment ?? 'center',
       dropOffset: dropOffset ?? { x: 0, y: 0 },
       capacity,

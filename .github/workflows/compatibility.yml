@@ -1,0 +1,61 @@
+name: Compatibility
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  web-e2e:
+    name: web-e2e-${{ matrix.browser }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        browser:
+          - chromium
+          - webkit
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: '1.3.14'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: bun install --frozen-lockfile
+      - run: bunx playwright install --with-deps ${{ matrix.browser }}
+      - run: bun run test:e2e --project=${{ matrix.browser }}
+
+  packed-consumer:
+    name: packed-${{ matrix.target }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    strategy:
+      fail-fast: false
+      matrix:
+        target:
+          - vite
+          - next
+          - expo-web
+          - expo-native
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: '1.3.14'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: bun install --frozen-lockfile
+      - run: bun run build
+      - run: bun run pack:smoke
+      - name: Validate packed consumer
+        run: |
+          TARBALL="$(ls .artifacts/*.tgz | head -n 1)"
+          bash ./scripts/run-consumer-matrix.sh "${{ matrix.target }}" "${TARBALL}"
