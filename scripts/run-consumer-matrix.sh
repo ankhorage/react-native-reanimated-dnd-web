@@ -4,6 +4,7 @@ set -euo pipefail
 TARGET="${1:-}"
 TARBALL_PATH="${2:-}"
 PACKAGE_NAME="@ankhorage/react-native-reanimated-dnd-web"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 if [[ -z "${TARGET}" || -z "${TARBALL_PATH}" ]]; then
   echo "Usage: ./scripts/run-consumer-matrix.sh <expo-web|expo-native|vite|next> <path-to-tgz>"
@@ -73,27 +74,16 @@ assert_no_manual_worklets_config() {
 }
 
 verify_expo_versions() {
-  node --input-type=module <<'EOF'
-import fs from 'node:fs';
-
-const expected = {
-  expo: '57.0.15',
-  react: '19.2.3',
-  'react-dom': '19.2.3',
-  'react-native': '0.86.2',
-  'react-native-gesture-handler': '2.32.0',
-  'react-native-reanimated': '4.5.1',
-  'react-native-reanimated-dnd': '2.0.0',
-  'react-native-web': '0.21.2',
-  'react-native-worklets': '0.10.1',
-};
-
-for (const [name, version] of Object.entries(expected)) {
-  const installed = JSON.parse(fs.readFileSync(`node_modules/${name}/package.json`, 'utf8')).version;
-  if (installed !== version) throw new Error(`${name}: expected ${version}, received ${installed}`);
-}
-console.log(`[consumer-matrix] verified Expo SDK 57 animation stack ${JSON.stringify(expected)}`);
-EOF
+  node "${SCRIPT_DIR}/verify-consumer-versions.mjs" "${APP_DIR}" "${PACKAGE_NAME}" \
+    expo \
+    react \
+    react-dom \
+    react-native \
+    react-native-gesture-handler \
+    react-native-reanimated \
+    react-native-reanimated-dnd \
+    react-native-web \
+    react-native-worklets
 }
 
 run_vite_consumer() {
