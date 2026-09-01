@@ -490,12 +490,10 @@ function SortableItemBase<T>({
           ? moveEvent.pageY - pending.startPageY
           : moveEvent.pageX - pending.startPageX;
 
-        if (
-          !(
-            Math.abs(deltaPrimary) > DRAG_THRESHOLD &&
-            Math.abs(deltaPrimary) > Math.abs(deltaSecondary)
-          )
-        ) {
+        if (!(
+          Math.abs(deltaPrimary) > DRAG_THRESHOLD &&
+          Math.abs(deltaPrimary) > Math.abs(deltaSecondary)
+        )) {
           return;
         }
 
