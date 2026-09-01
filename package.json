@@ -72,16 +72,15 @@
     "build:assert-artifacts": "node ./scripts/assert-artifacts.mjs",
     "release:validate-meta": "node ./scripts/verify-version-sync.mjs",
     "typecheck": "tsc --noEmit -p tsconfig.json",
-    "changeset:status": "changeset status --since=origin/main",
-    "changeset": "changeset",
+    "changeset:status": "ankhorage-changeset status --since=origin/main",
+    "changeset": "ankhorage-changeset",
     "compiler:healthcheck": "bunx react-compiler-healthcheck@latest",
     "docs": "ankhorage-prettier --check README.md WEB_SUPPORT.md",
     "lint": "ankhorage-eslint . --max-warnings=0",
     "lint:fix": "ankhorage-eslint . --fix --max-warnings=0",
     "format": "ankhorage-prettier --write .",
     "format:check": "ankhorage-prettier --check .",
-    "knip": "ankhorage-knip",
-    "test": "bun test src",
+    "test": "bun test src scripts",
     "check:parity": "bun ./scripts/check-export-parity.ts",
     "test:e2e": "playwright test --config playwright.config.ts",
     "demo:dev": "vite --config examples/vite.config.ts examples",
@@ -89,13 +88,15 @@
     "consumer:matrix": "bash ./scripts/run-consumer-matrix.sh",
     "pack:smoke": "rm -rf .artifacts .npm-cache && mkdir -p .artifacts .npm-cache && NPM_CONFIG_CACHE=.npm-cache npm pack --pack-destination .artifacts . && node ./scripts/verify-pack.mjs .artifacts",
     "release:check": "bun run release:validate-meta && bun run check:parity && bun run build && bun run test && bun run pack:smoke",
-    "version-packages": "changeset version"
+    "version-packages": "ankhorage-changeset version",
+    "knip:check": "ankhorage-knip"
   },
   "devDependencies": {
-    "@ankhorage/devtools": "^1.6.0",
-    "@changesets/cli": "^2.31.0",
+    "@ankhorage/ankh": "^0.8.7",
+    "@ankhorage/devtools": "^1.9.3",
+    "@ankhorage/doctor": "^0.10.6",
     "@playwright/test": "^1.56.1",
-    "@types/bun": "^1.3.14",
+    "@types/bun": "^1.4.0",
     "@types/node": "^24.13.3",
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.3",
@@ -112,5 +113,5 @@
     "typescript": "~6.0.3",
     "vite": "^7.1.7"
   },
-  "packageManager": "bun@1.3.14"
+  "packageManager": "bun@1.4.0"
 }
