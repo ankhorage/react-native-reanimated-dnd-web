@@ -4,10 +4,11 @@
   "license": "MIT",
   "private": false,
   "keywords": [
-    "react-native",
-    "drag-and-drop",
+    "ankhorage",
     "dnd",
+    "drag-and-drop",
     "expo",
+    "react-native",
     "react-native-web",
     "reanimated"
   ],
