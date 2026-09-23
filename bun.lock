@@ -10,7 +10,7 @@
       "devDependencies": {
         "@ankhorage/ankh": "^0.8.11",
         "@ankhorage/devtools": "^1.14.0",
-        "@ankhorage/doctor": "^0.10.38",
+        "@ankhorage/doctor": "^0.10.39",
         "@playwright/test": "^1.56.1",
         "@types/bun": "^1.4.1",
         "@types/node": "^24.13.3",
@@ -53,7 +53,7 @@
 
     "@ankhorage/devtools": ["@ankhorage/devtools@1.14.0", "", { "dependencies": { "@ankhorage/utility": "^0.5.0", "@changesets/cli": "^3.0.2", "@eslint/compat": "^2.1.1", "@eslint/js": "^10.0.1", "eslint": "^10.10.0", "eslint-config-prettier": "^10.1.8", "eslint-plugin-import": "^2.32.0", "eslint-plugin-prettier": "^5.5.6", "eslint-plugin-react": "^7.37.5", "eslint-plugin-react-hooks": "^7.0.0", "eslint-plugin-react-native": "^5.0.0", "eslint-plugin-security": "^4.0.1", "eslint-plugin-simple-import-sort": "^14.0.0", "eslint-plugin-unused-imports": "^4.4.1", "knip": "^6.34.0", "prettier": "^3.9.6", "typescript-eslint": "^8.69.0" }, "bin": { "ankhorage-changeset": "dist/cli/bin/changeset.js", "ankhorage-eslint": "dist/cli/bin/eslint.js", "ankhorage-knip": "dist/cli/bin/knip.js", "ankhorage-prettier": "dist/cli/bin/prettier.js" } }, "sha512-HFWAhRxl1PuS0JL2/8e9/fOreiwdBhAKE+NnR9xn4CFoERObn2jxdM6p/8zHOYZ8BRKzfaCJ1iBQACEgLSaTMA=="],
 
-    "@ankhorage/doctor": ["@ankhorage/doctor@0.10.38", "", { "dependencies": { "@ankhorage/contracts": "^22.8.0", "@ankhorage/supabase-auth": "^1.2.25" }, "bin": { "ankhorage-doctor": "dist/cli/standalone.js" } }, "sha512-nk0PeSZ2HNNC9lyxUeA+rtO5xtZxQEUshHHhsxd7ifn55+1GANuqZ425ngjw749WH/xvobFWObyh+gfypdMqhQ=="],
+    "@ankhorage/doctor": ["@ankhorage/doctor@0.10.39", "", { "dependencies": { "@ankhorage/contracts": "^22.8.1", "@ankhorage/supabase-auth": "^1.2.25" }, "bin": { "ankhorage-doctor": "dist/cli/standalone.js" } }, "sha512-yhCIFM7/51TTZ+mcVGZx4p0IKNzvYnmbGX6awHZfkGf7FAXlXbpAkhJzWjh2uiXHiM1RBUuRiIgdZ2BEnVJEvg=="],
 
     "@ankhorage/supabase-auth": ["@ankhorage/supabase-auth@1.2.25", "", { "dependencies": { "@ankhorage/contracts": "^22.8.0", "@noble/hashes": "2.3.0" } }, "sha512-DIoTX17e+/SIOetY500LBWVIK4r59CihKRBNIHk0kh+NSwkFXWJojsZPrVAMho/4Z1fmcuJRWagfR4tfm29qzQ=="],
 
@@ -1473,7 +1473,7 @@
 
     "zod-validation-error": ["zod-validation-error@4.0.2", "", { "peerDependencies": { "zod": "^3.25.0 || ^4.0.0" } }, "sha512-Q6/nZLe6jxuU80qb/4uJ4t5v2VEZ44lzQjPDhYJNztRQ4wyWc6VF3D3Kb/fAuPetZQnhS3hnajCf9CsWesghLQ=="],
 
-    "@ankhorage/doctor/@ankhorage/contracts": ["@ankhorage/contracts@22.8.0", "", { "dependencies": { "@ankhorage/color-theory": "^0.3.1", "@ankhorage/utility": "^1.5.0" } }, "sha512-uYJdDxw+lSBGkFNPNtgegTwyD4KXqOGgXPCV7CfPPEi/zKZNF/yjFYZrXN3mqTRh1FfeAUq+EfPbdNTwKrf2cA=="],
+    "@ankhorage/doctor/@ankhorage/contracts": ["@ankhorage/contracts@22.8.1", "", { "dependencies": { "@ankhorage/color-theory": "^0.3.1", "@ankhorage/utility": "^1.6.0" } }, "sha512-WHZ09WJgwAxQfIowP16pYz+k1sJDDZsUvd12DXpAiylF8ytf0PtJaXgxYOfef6qq3akbDu7pfH68UuY7kahhEg=="],
 
     "@ankhorage/supabase-auth/@ankhorage/contracts": ["@ankhorage/contracts@22.8.0", "", { "dependencies": { "@ankhorage/color-theory": "^0.3.1", "@ankhorage/utility": "^1.5.0" } }, "sha512-uYJdDxw+lSBGkFNPNtgegTwyD4KXqOGgXPCV7CfPPEi/zKZNF/yjFYZrXN3mqTRh1FfeAUq+EfPbdNTwKrf2cA=="],
 
@@ -1763,7 +1763,7 @@
 
     "@ankhorage/doctor/@ankhorage/contracts/@ankhorage/color-theory": ["@ankhorage/color-theory@0.3.1", "", { "dependencies": { "culori": "^4.0.2" } }, "sha512-PqGeC16IkWzTA3Qig3T1p6CE6oN6JC1fv83cJ8SdohY5vlNE1YqJAZsLkzCy59ylJOwgPITA98TRH3jIVnlGBw=="],
 
-    "@ankhorage/doctor/@ankhorage/contracts/@ankhorage/utility": ["@ankhorage/utility@1.5.0", "", {}, "sha512-tbLeGeE9w1umSgcrP5klGxawb6WB1lO8w3QvAxgdhWV4vTDS+qbWu6CEwvS8ao83ZR0duYn+oszcTmv6If5PRQ=="],
+    "@ankhorage/doctor/@ankhorage/contracts/@ankhorage/utility": ["@ankhorage/utility@1.6.0", "", {}, "sha512-lwr5wQBhbV92SxkjKoI4f/fjk9QuKvR1pkj6I5fwoj9HlsTYJQLsVXnAiKYbe7zXvKTts35to/FzU+qnphMVXA=="],
 
     "@ankhorage/supabase-auth/@ankhorage/contracts/@ankhorage/color-theory": ["@ankhorage/color-theory@0.3.1", "", { "dependencies": { "culori": "^4.0.2" } }, "sha512-PqGeC16IkWzTA3Qig3T1p6CE6oN6JC1fv83cJ8SdohY5vlNE1YqJAZsLkzCy59ylJOwgPITA98TRH3jIVnlGBw=="],
 
