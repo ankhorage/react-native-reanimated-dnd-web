@@ -93,7 +93,7 @@
     "knip:check": "ankhorage-knip"
   },
   "devDependencies": {
-    "@ankhorage/ankh": "^0.8.11",
+    "@ankhorage/ankh": "^0.10.4",
     "@ankhorage/devtools": "^2.0.0",
     "@ankhorage/doctor": "^0.10.40",
     "@playwright/test": "^1.56.1",
