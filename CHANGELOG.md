@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.4.4
+
+### Patch Changes
+
+- ec389c9: Update dependencies from Renovate pull request #73.
+
 ## 0.4.3
 
 ### Patch Changes
