@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.4.2
+
+### Patch Changes
+
+- 212e22c: Update dependencies from Renovate pull request #60.
+
 ## 0.4.1
 
 ### Patch Changes
