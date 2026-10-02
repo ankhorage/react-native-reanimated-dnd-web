@@ -94,7 +94,7 @@
   },
   "devDependencies": {
     "@ankhorage/ankh": "^0.10.82",
-    "@ankhorage/devtools": "^2.0.116",
+    "@ankhorage/devtools": "^2.1.1",
     "@ankhorage/doctor": "^0.11.95",
     "@playwright/test": "^1.63.0",
     "@types/bun": "^1.4.2",
