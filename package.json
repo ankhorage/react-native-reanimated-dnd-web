@@ -93,26 +93,26 @@
     "knip:check": "ankhorage-knip"
   },
   "devDependencies": {
-    "@ankhorage/ankh": "^0.10.82",
+    "@ankhorage/ankh": "^0.10.83",
     "@ankhorage/devtools": "^2.1.1",
-    "@ankhorage/doctor": "^0.11.95",
+    "@ankhorage/doctor": "^0.11.96",
     "@playwright/test": "^1.63.0",
     "@types/bun": "^1.4.2",
-    "@types/node": "^24.13.3",
-    "@types/react": "^19.2.18",
-    "@types/react-dom": "^19.2.3",
-    "@vitejs/plugin-react": "^5.0.4",
+    "@types/node": "^26.6.4",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^6.1.1",
     "esbuild": "^0.28.2",
-    "react": "19.2.3",
-    "react-dom": "19.2.3",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
     "react-native": "0.86.2",
-    "react-native-gesture-handler": "~2.32.0",
-    "react-native-reanimated": "4.5.1",
+    "react-native-gesture-handler": "~3.3.0",
+    "react-native-reanimated": "4.7.1",
     "react-native-web": "~0.21.3",
-    "react-native-worklets": "0.10.1",
+    "react-native-worklets": "0.13.0",
     "tsup": "^8.5.1",
     "typescript": "~6.0.3",
-    "vite": "^8.3.1"
+    "vite": "^8.3.2"
   },
   "packageManager": "bun@1.4.2"
 }
