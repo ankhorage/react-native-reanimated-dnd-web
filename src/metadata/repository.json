@@ -1,0 +1,42 @@
+{
+  "schemaVersion": 1,
+  "kind": "adapter",
+  "title": "React Native Reanimated DnD Web Adapter",
+  "summary": "Adds parity-compatible web drag, drop, and sortable behavior while passing native usage through to react-native-reanimated-dnd.",
+  "purpose": "Let cross-platform React Native consumers use a single drag-and-drop package boundary on native and web.",
+  "domain": "cross-platform drag and drop",
+  "responsibilities": [
+    "Pass native imports through to the upstream react-native-reanimated-dnd package.",
+    "Provide browser implementations of draggable, droppable, provider, hook, and sortable behavior.",
+    "Translate DOM geometry and pointer interactions into the upstream-compatible public surface."
+  ],
+  "boundaries": [
+    "Does not own the upstream native drag-and-drop implementation.",
+    "Does not provide application-specific drag policy or persistence.",
+    "Does not replace React Native Reanimated, Gesture Handler, or Worklets."
+  ],
+  "audience": [
+    "React Native and Expo applications that also render on the web.",
+    "Libraries requiring parity-compatible drag-and-drop primitives across platforms."
+  ],
+  "useCases": [
+    "Use upstream drag-and-drop behavior unchanged on native platforms.",
+    "Render draggable and droppable interactions in React Native Web.",
+    "Build sortable web collections behind the same package import."
+  ],
+  "architecture": {
+    "role": "Platform adapter selecting native passthrough or browser-specific implementations at the package entrypoint.",
+    "invariants": [
+      "Native resolution remains an upstream passthrough.",
+      "Browser behavior preserves the documented public type surface.",
+      "DOM measurement remains isolated to web-owned modules."
+    ]
+  },
+  "constraints": {
+    "platforms": ["React Native", "React Native Web"],
+    "limitations": [
+      "Web parity is limited to behavior implemented by this adapter.",
+      "Consumers must provide compatible React Native, Reanimated, Gesture Handler, and Worklets peers."
+    ]
+  }
+}
