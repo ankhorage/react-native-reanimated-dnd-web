@@ -107,7 +107,7 @@
     "react-dom": "19.3.1",
     "react-native": "0.86.2",
     "react-native-gesture-handler": "~3.5.0",
-    "react-native-reanimated": "4.7.2",
+    "react-native-reanimated": "4.8.0",
     "react-native-web": "~0.21.4",
     "react-native-worklets": "0.14.0",
     "tsup": "^9.0.0",
